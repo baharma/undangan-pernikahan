@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
 
 :root {
   --background: #ffffff;
@@ -11,7 +10,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-pacifico: "Pacifico", cursive;
+  --font-pacifico: var(--font-pacifico);
   --color-blue-sky: #4489b2;
   --color-dark-forest-green: #1b2a24;
   --color-lime-moss: #a5be65;
