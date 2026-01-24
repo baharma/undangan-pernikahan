@@ -107,13 +107,13 @@ export default function ComponentContentMain() {
       {/* Right Half - Main Content */}
       <div
         className={clsx(
-          "w-full lg:w-1/3 relative overflow-y-auto order-2 lg:order-2 transition-colors duration-300",
+          "w-full lg:w-1/3 relative order-2 lg:order-2 transition-colors duration-300 flex flex-col overflow-hidden",
           isDark ? "bg-neutral-950 text-neutral-100" : "bg-white text-gray-900",
         )}
-        data-scroll-container="true"
       >
-        {/* Content Container */}
-        <div className="max-w-2xl flex flex-col gap-30 mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12 pb-20 space-y-12 md:space-y-16 pt-16 md:pt-20">
+        <div className="flex-1 overflow-y-auto" data-scroll-container="true">
+          {/* Content Container */}
+          <div className="max-w-2xl flex flex-col gap-30 mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12 pb-28 space-y-12 md:space-y-16 pt-16 md:pt-20">
           {/* Mobile Mini Hero */}
           <div
             className={clsx(
@@ -426,16 +426,17 @@ export default function ComponentContentMain() {
               </svg>
             </div>
           </footer>
-
-          <BottomNavigator
-            theme={theme}
-            showLamp
-            showMusic
-            musicSrc="/audio/music.mp3"
-            isDark={isDark}
-            onToggleTheme={() => setIsDark((prev) => !prev)}
-          />
+          </div>
         </div>
+
+        <BottomNavigator
+          theme={theme}
+          showLamp
+          showMusic
+          musicSrc="/audio/music.mp3"
+          isDark={isDark}
+          onToggleTheme={() => setIsDark((prev) => !prev)}
+        />
       </div>
     </div>
   );

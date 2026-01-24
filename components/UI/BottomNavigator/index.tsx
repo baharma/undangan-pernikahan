@@ -131,7 +131,7 @@ export default function BottomNavigator({
           aria-pressed={isPlaying}
           onClick={handleToggleMusic}
           className={clsx(
-            "absolute -top-[5.5rem] right-6 z-20 flex h-32 w-32 items-center justify-center rounded-full border-2 shadow-lg transition-all duration-300",
+            "absolute -top-[5.5rem] md:-top-[8.5rem] right-6 z-20 flex h-32 w-32 items-center justify-center rounded-full border-2 shadow-lg transition-all duration-300",
             "backdrop-blur-md will-change-transform",
             isDark
               ? "bg-neutral-900/90 text-amber-200 border-amber-600 shadow-amber-200/20"
@@ -153,7 +153,7 @@ export default function BottomNavigator({
           aria-pressed={isDark}
           onClick={onToggleTheme}
           className={clsx(
-            "absolute -top-42 right-4 z-10 flex h-32 w-32 items-center justify-center rounded-full border-4 shadow-lg transition-all duration-300",
+            "absolute -top-42 right-6 z-10 flex h-32 w-32 items-center justify-center rounded-full border-4 shadow-lg transition-all duration-300",
             "backdrop-blur-md will-change-transform",
             isDark
               ? "bg-amber-300/90 text-neutral-900 border-amber-600 shadow-amber-200/30"
