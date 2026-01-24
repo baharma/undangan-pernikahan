@@ -119,7 +119,7 @@ export default function BottomNavigator({
   return (
     <nav
       className={clsx(
-        "sticky bottom-0 z-50 border-t backdrop-blur-sm relative",
+        "fixed bottom-0 left-0 right-0 z-50 border-t backdrop-blur-sm relative lg:sticky lg:bottom-0 lg:left-auto lg:right-auto",
         isDarkTheme
           ? "border-neutral-800 bg-neutral-950/90 shadow-black/30"
           : "border-gray-200 bg-white/95 shadow-lg",
