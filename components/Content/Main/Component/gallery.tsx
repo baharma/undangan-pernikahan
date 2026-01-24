@@ -1,4 +1,39 @@
-const galleryItems = ["01", "02", "03", "04", "05", "06"];
+import ComponentUIGradientImage from "@/components/UI/GradientImage";
+
+const galleryItems = [
+  {
+    src: "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/08b3e501-mx4_3276-copy.jpg",
+    ratio: "portrait",
+  },
+  {
+    src: "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/836bc4e5-mx4_3261.jpg",
+    ratio: "landscape",
+  },
+  {
+    src: "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/2a49d380-mx4_3143.jpg",
+    ratio: "portrait",
+  },
+  {
+    src: "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/0899fb48-mx4_3022.jpg",
+    ratio: "landscape",
+  },
+  {
+    src: "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/9a4474d9-mx4_2980.jpg",
+    ratio: "portrait",
+  },
+  {
+    src: "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/42c29673-mx4_2814.jpg",
+    ratio: "portrait",
+  },
+  {
+    src: "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/d6bb5714-che04350.jpg",
+    ratio: "portrait",
+  },
+  {
+    src: "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/074245a6-che04229.jpg",
+    ratio: "portrait",
+  },
+];
 
 type GalleryProps = {
   theme?: "light" | "dark";
@@ -8,28 +43,28 @@ export default function Gallery({ theme = "light" }: GalleryProps) {
   const isDark = theme === "dark";
 
   return (
-    <div className="relative">
-      <div className="flex gap-4 overflow-x-auto pb-3 pr-2 snap-x snap-mandatory scrollbar-hide">
-        {galleryItems.map((label) => (
+    <div className="columns-2 gap-3 md:gap-4">
+      {galleryItems.map((item) => (
+        <div key={item.src} className="mb-3 md:mb-4 break-inside-avoid">
           <div
-            key={label}
-            className={`snap-start shrink-0 w-40 sm:w-48 md:w-56 lg:w-60 aspect-[4/5] rounded-2xl shadow-md flex items-center justify-center text-sm font-semibold ${
-              isDark
-                ? "bg-gradient-to-br from-neutral-800 via-neutral-900 to-neutral-950 text-amber-200"
-                : "bg-gradient-to-br from-amber-100 via-orange-100 to-rose-100 text-amber-700"
-            }`}
+            className={`overflow-hidden rounded-2xl border shadow-md ${
+              item.ratio === "portrait"
+                ? "aspect-[2/3]"
+                : item.ratio === "landscape"
+                  ? "aspect-[4/3]"
+                  : "aspect-square"
+            } ${isDark ? "border-neutral-800 bg-neutral-900" : "border-gray-200 bg-white"}`}
           >
-            Foto {label}
+            <ComponentUIGradientImage
+              fitVariant="cover"
+              lazy
+              unoptimized
+              src={item.src}
+              alt="Gallery wedding"
+            />
           </div>
-        ))}
-      </div>
-      <div
-        className={`pointer-events-none absolute right-0 top-0 h-full w-10 ${
-          isDark
-            ? "bg-gradient-to-l from-neutral-950 to-transparent"
-            : "bg-gradient-to-l from-white to-transparent"
-        }`}
-      />
+        </div>
+      ))}
     </div>
   );
 }

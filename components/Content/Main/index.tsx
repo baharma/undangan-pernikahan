@@ -2,8 +2,8 @@
 
 import clsx from "clsx";
 import { useState } from "react";
-import { FaLightbulb, FaRegLightbulb } from "react-icons/fa";
 import ComponentUIBackgroundTransition from "@/components/UI/BackgroundTransition";
+import ComponentUIGradientImage from "@/components/UI/GradientImage";
 import ComponentUITitle from "@/components/UI/Title";
 import BottomNavigator from "@/components/UI/BottomNavigator";
 import BrideAndGroom from "./Component/bride-and-groom";
@@ -112,27 +112,6 @@ export default function ComponentContentMain() {
         )}
         data-scroll-container="true"
       >
-        <button
-          type="button"
-          aria-pressed={isDark}
-          onClick={() => setIsDark((prev) => !prev)}
-          className={clsx(
-            "absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full border shadow-lg transition-all duration-300",
-            "backdrop-blur-md will-change-transform",
-            isDark
-              ? "bg-amber-300/90 text-neutral-900 border-amber-200/50 shadow-amber-200/30"
-              : "bg-white/90 text-amber-600 border-amber-100 shadow-amber-200/30",
-          )}
-          style={{ animation: "float-slow 6s ease-in-out infinite" }}
-          title={isDark ? "Mode terang" : "Mode gelap"}
-        >
-          {isDark ? (
-            <FaLightbulb className="text-lg" />
-          ) : (
-            <FaRegLightbulb className="text-lg" />
-          )}
-        </button>
-
         {/* Content Container */}
         <div className="max-w-2xl flex flex-col gap-30 mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12 pb-20 space-y-12 md:space-y-16 pt-16 md:pt-20">
           {/* Mobile Mini Hero */}
@@ -405,19 +384,57 @@ export default function ComponentContentMain() {
           {/* Footer */}
           <footer
             className={clsx(
-              "text-center py-12 border-t",
-              isDark ? "border-neutral-800" : "border-gray-200",
+              "relative overflow-hidden rounded-3xl border text-center pt-10 pb-16",
+              isDark
+                ? "border-neutral-800 bg-neutral-950"
+                : "border-amber-100 bg-amber-50",
             )}
           >
-            <p className={clsx("text-sm", isDark ? "text-neutral-300" : "text-gray-600")}>
-              Terima kasih atas doa & restu Anda
-            </p>
-            <p className={clsx("text-xs mt-2", isDark ? "text-neutral-500" : "text-gray-500")}>
+            <div className="mx-auto w-24">
+              <ComponentUIGradientImage
+                fitVariant="contain"
+                lazy
+                unoptimized
+                src="https://storage.googleapis.com/stateless-swalapatra-com/2022/12/e4e9f1f8-logo3-150x150.png"
+                alt="Wedding logo"
+              />
+            </div>
+            <p
+              className={clsx(
+                "mt-4 text-sm font-semibold tracking-wide",
+                isDark ? "text-neutral-200" : "text-gray-700",
+              )}
+            >
               Listia & Dedi
             </p>
+
+            <div className="absolute bottom-0 left-0 w-full">
+              <svg
+                viewBox="0 0 1000 100"
+                preserveAspectRatio="none"
+                className={clsx(
+                  "h-10 w-full",
+                  isDark ? "text-neutral-950" : "text-amber-50",
+                )}
+              >
+                <path
+                  className="fill-current"
+                  d="M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7
+                   c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4
+                   c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z"
+                />
+              </svg>
+            </div>
           </footer>
 
-          <BottomNavigator theme={theme} />
+          <BottomNavigator
+            theme={theme}
+            showLamp
+            showMusic
+            musicSrc="/audio/music.mp3"
+            isDark={isDark}
+            onToggleTheme={() => setIsDark((prev) => !prev)}
+          />
         </div>
       </div>
     </div>
