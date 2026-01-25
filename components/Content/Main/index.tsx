@@ -343,7 +343,7 @@ export default function ComponentContentMain() {
                 {/* DateCountDown with Slideshow Background */}
                 <div
                   className={clsx(
-                    "relative rounded-2xl overflow-hidden shadow-lg h-500",
+                    "relative rounded-2xl overflow-hidden shadow-lg h-[500px]",
                     isDark
                       ? "border border-neutral-800"
                       : "border border-amber-200/50",
@@ -412,8 +412,8 @@ export default function ComponentContentMain() {
                           </p>
                         </div>
 
-                        {/* Countdown Timer Preview - Hide on mobile for space */}
-                        <div className="pt-4 md:pt-6 lg:pt-8 hidden md:block">
+                        {/* Countdown Timer */}
+                        <div className="pt-4 md:pt-6 lg:pt-8">
                           <DateCountDown />
                         </div>
 

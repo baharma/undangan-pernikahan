@@ -5,8 +5,8 @@ import ComponentUIGradientImage from "@/components/UI/GradientImage";
 import ComponentUIIcon from "@/components/UI/Icon";
 import ComponentUITitle from "@/components/UI/Title";
 import { MdOutlineMail } from "react-icons/md";
-import { FaHeart } from "react-icons/fa";
-import { useState, useEffect, useRef } from "react";
+import { FaHeart, FaStar } from "react-icons/fa";
+import { useState, useEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useRouter } from "next/navigation";
@@ -18,6 +18,28 @@ interface Heart {
   size: string;
   opacity: number;
   duration: number;
+}
+
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  color: string;
+  duration: number;
+  delay: number;
+}
+
+function generateSpiralParticles(count: number): Particle[] {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    size: Math.random() * 4 + 2,
+    color: Math.random() > 0.5 ? "#FFD700" : "#FFFFFF", // Gold and White
+    duration: Math.random() * 1 + 0.5,
+    delay: Math.random() * 0.2,
+  }));
 }
 
 function generateRandomHearts(count: number): Heart[] {
@@ -33,10 +55,15 @@ function generateRandomHearts(count: number): Heart[] {
   }));
 }
 
+
+
 export default function ComponentContentHome() {
   const [hearts, setHearts] = useState<Heart[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [fallingStars, setFallingStars] = useState<Particle[]>([]);
   const navigation = useRouter();
+
   // Refs for GSAP animations
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -46,13 +73,84 @@ export default function ComponentContentHome() {
   const dividerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLParagraphElement>(null);
+  const transitionOverlayRef = useRef<HTMLDivElement>(null);
+  const starsContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHearts(generateRandomHearts(8));
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
+
+  // Handle transition animation
+  const handleOpenInvitation = useCallback(() => {
+    setIsTransitioning(true);
+    setFallingStars(generateSpiralParticles(100)); // Generate many particles
+
+    // Main Timeline
+    const tl = gsap.timeline();
+
+    // 1. Zoom out slightly then Zoom IN Main Content
+    tl.to(containerRef.current, {
+      scale: 0.95,
+      duration: 0.3,
+      ease: "power2.out"
+    })
+      .to(containerRef.current, {
+        scale: 2,
+        opacity: 0,
+        duration: 0.8,
+        ease: "power4.in",
+      });
+
+    // 2. Fade in Dark Overlay
+    tl.to(transitionOverlayRef.current, {
+      opacity: 1,
+      duration: 0.1,
+      ease: "power1.in",
+    }, "-=0.8");
+
+    // 3. Light Burst Animation
+    const light = transitionOverlayRef.current?.querySelector(".light-burst");
+    if (light) {
+      tl.to(light, {
+        scale: 300,
+        opacity: 1,
+        duration: 1.5,
+        ease: "expo.in",
+      }, "-=0.5");
+    }
+
+    // 4. Navigate
+    setTimeout(() => {
+      navigation.push("/home");
+    }, 1500);
+
+  }, [navigation]);
+
+  // Animate Particles Spiraling In
+  useEffect(() => {
+    if (isTransitioning && starsContainerRef.current) {
+      const particles = starsContainerRef.current.querySelectorAll('.particle');
+
+      particles.forEach((p, i) => {
+        const element = p as HTMLElement;
+        // Calculate center
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+
+        // Random starting positions (scattered) -> flying towards center
+        gsap.to(element, {
+          x: centerX - parseFloat(element.style.left) + (Math.random() * 100 - 50), // Move towards center with jitter
+          y: centerY - parseFloat(element.style.top) + (Math.random() * 100 - 50),
+          opacity: 0,
+          scale: 0,
+          duration: Math.random() * 0.8 + 0.4,
+          ease: "power2.in",
+          delay: Math.random() * 0.2
+        });
+      });
+    }
+  }, [isTransitioning, fallingStars]);
 
   // Entrance animations
   useGSAP(
@@ -149,6 +247,43 @@ export default function ComponentContentHome() {
 
   return (
     <div ref={containerRef} className="relative min-h-screen overflow-hidden">
+      {/* Transition Overlay with Magical Portal Effect */}
+      <div
+        ref={transitionOverlayRef}
+        className="fixed inset-0 z-50 pointer-events-none opacity-0 flex items-center justify-center overflow-hidden"
+        style={{ background: 'radial-gradient(circle at center, #2a2a4e 0%, #000000 100%)' }}
+      >
+        {/* Swirling Particles Container */}
+        <div ref={starsContainerRef} className="absolute inset-0">
+          {fallingStars.map((p) => (
+            <div
+              key={p.id}
+              className="particle absolute rounded-full"
+              style={{
+                left: p.x,
+                top: p.y,
+                width: p.size,
+                height: p.size,
+                backgroundColor: p.color,
+                boxShadow: `0 0 ${p.size * 2}px ${p.color}`,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Central Burst Light */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-1 h-1 bg-white rounded-full shadow-[0_0_100px_50px_rgba(255,255,255,0.8)] opacity-0 scale-0 light-burst" />
+        </div>
+
+        {/* Center Content During Transition */}
+        {/* <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+             ... (Optional text)
+          </div>
+        </div> */}
+      </div>
+
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <ComponentUIGradientImage
@@ -244,7 +379,7 @@ export default function ComponentContentHome() {
         {/* CTA Button */}
         <div ref={buttonRef}>
           <ComponentUIButton
-            onClick={() => navigation.push("/home")}
+            onClick={handleOpenInvitation}
             className="bg-white/95 hover:bg-white text-neutral-800 px-8 py-4 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
           >
             <div className="flex items-center gap-3">
