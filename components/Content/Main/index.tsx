@@ -1,7 +1,9 @@
 "use client";
 
 import clsx from "clsx";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import ComponentUIBackgroundTransition from "@/components/UI/BackgroundTransition";
 import ComponentUIGradientImage from "@/components/UI/GradientImage";
 import ComponentUITitle from "@/components/UI/Title";
@@ -19,16 +21,299 @@ const MAIN_BG_IMAGES = [
   "https://images.tokopedia.net/blog-tokopedia-com/uploads/2020/02/pernikahan-adat-bali-sumber-bridestory.jpg",
 ];
 
+type Sparkle = {
+  id: number;
+  top: number;
+  left: number;
+  size: number;
+  opacity: number;
+};
+
 export default function ComponentContentMain() {
   const [isDark, setIsDark] = useState(false);
   const theme = isDark ? "dark" : "light";
+  const leftHeroRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const leftHeroBgRef = useRef<HTMLDivElement>(null);
+  const mobileHeroBgRef = useRef<HTMLDivElement>(null);
+  const eventHeroBgRef = useRef<HTMLDivElement>(null);
+  const [heroSparkles, setHeroSparkles] = useState<Sparkle[]>([]);
+  const [mobileSparkles, setMobileSparkles] = useState<Sparkle[]>([]);
+
+  useEffect(() => {
+    const createSparkles = (count: number, sizeMin: number, sizeRange: number) =>
+      Array.from({ length: count }, (_, index) => ({
+        id: index,
+        top: Math.random() * 100,
+        left: Math.random() * 100,
+        size: Math.random() * sizeRange + sizeMin,
+        opacity: Math.random() * 0.3 + 0.35,
+      }));
+
+    setHeroSparkles(createSparkles(16, 2, 3));
+    setMobileSparkles(createSparkles(8, 1.5, 2.5));
+  }, []);
+
+  useGSAP(
+    () => {
+      if (!leftHeroRef.current) return;
+      const items = leftHeroRef.current.querySelectorAll<HTMLElement>(
+        "[data-hero-item]",
+      );
+      if (!items.length) return;
+
+      const prefersReduced = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      const shimmer = leftHeroRef.current.querySelector<HTMLElement>(
+        "[data-hero-shimmer]",
+      );
+      const sparkles = leftHeroRef.current.querySelectorAll<HTMLElement>(
+        "[data-sparkle]",
+      );
+
+      if (prefersReduced) {
+        gsap.set(items, { autoAlpha: 1, y: 0, filter: "none" });
+        gsap.set(sparkles, { opacity: 0.6, y: 0, x: 0 });
+        if (shimmer) gsap.set(shimmer, { opacity: 0 });
+        return;
+      }
+
+      gsap.set(items, { autoAlpha: 0, y: 24, filter: "blur(4px)" });
+      gsap.to(items, {
+        autoAlpha: 1,
+        y: 0,
+        filter: "blur(0px)",
+        duration: 0.9,
+        ease: "power3.out",
+        stagger: 0.12,
+        delay: 0.1,
+      });
+
+      if (shimmer) {
+        gsap.fromTo(
+          shimmer,
+          { xPercent: -130, opacity: 0 },
+          {
+            xPercent: 130,
+            opacity: 0.9,
+            duration: 1.6,
+            ease: "power2.out",
+            delay: 0.35,
+          },
+        );
+      }
+
+      gsap.to(items, {
+        y: "-=6",
+        duration: 6,
+        ease: "sine.inOut",
+        repeat: -1,
+        yoyo: true,
+        stagger: { each: 0.2, from: "random" },
+      });
+    },
+    { scope: leftHeroRef },
+  );
+
+  useEffect(() => {
+    const root = scrollContainerRef.current;
+    if (!root) return;
+
+    const elements = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-animate='fade-up']"),
+    );
+    if (!elements.length) return;
+
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    if (prefersReduced) {
+      gsap.set(elements, { autoAlpha: 1, y: 0, scale: 1, filter: "none" });
+      return;
+    }
+
+    gsap.set(elements, { autoAlpha: 0, y: 32, scale: 0.98, filter: "blur(6px)" });
+
+    elements.forEach((element) => {
+      const layers = element.querySelectorAll<HTMLElement>("[data-layer]");
+      if (layers.length) {
+        gsap.set(layers, { autoAlpha: 0, y: 18 });
+      }
+      const shimmer = element.querySelectorAll<HTMLElement>("[data-shimmer]");
+      if (shimmer.length) {
+        gsap.set(shimmer, { xPercent: -130, opacity: 0 });
+      }
+    });
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const element = entry.target as HTMLElement;
+          gsap.to(element, {
+            autoAlpha: 1,
+            y: 0,
+            scale: 1,
+            filter: "blur(0px)",
+            duration: 0.9,
+            ease: "power3.out",
+            overwrite: "auto",
+          });
+
+          const layers = element.querySelectorAll<HTMLElement>("[data-layer]");
+          if (layers.length) {
+            gsap.to(layers, {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.7,
+              ease: "power3.out",
+              stagger: 0.12,
+              delay: 0.12,
+            });
+          }
+
+          const shimmer = element.querySelectorAll<HTMLElement>("[data-shimmer]");
+          shimmer.forEach((node) => {
+            gsap.fromTo(
+              node,
+              { xPercent: -130, opacity: 0 },
+              {
+                xPercent: 130,
+                opacity: 0.85,
+                duration: 1.4,
+                ease: "power2.out",
+                delay: 0.15,
+              },
+            );
+          });
+
+          if (element.dataset.float === "true") {
+            gsap.to(element, {
+              y: "-=4",
+              duration: 10,
+              ease: "sine.inOut",
+              repeat: -1,
+              yoyo: true,
+            });
+          }
+          observer.unobserve(element);
+        });
+      },
+      {
+        root,
+        threshold: 0.2,
+        rootMargin: "0px 0px -10% 0px",
+      },
+    );
+
+    elements.forEach((element) => observer.observe(element));
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const root = scrollContainerRef.current;
+    if (!root) return;
+
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    const targets = [
+      { element: leftHeroBgRef.current, range: 40 },
+      { element: mobileHeroBgRef.current, range: 20 },
+      { element: eventHeroBgRef.current, range: 26 },
+    ];
+
+    if (prefersReduced) {
+      targets.forEach(({ element }) => {
+        if (element) gsap.set(element, { y: 0 });
+      });
+      return;
+    }
+
+    let frame = 0;
+
+    const updateParallax = () => {
+      frame = 0;
+      const maxScroll = root.scrollHeight - root.clientHeight;
+      const progress = maxScroll > 0 ? root.scrollTop / maxScroll : 0;
+
+      targets.forEach(({ element, range }) => {
+        if (!element) return;
+        const offset = (progress - 0.5) * range;
+        gsap.set(element, { y: offset });
+      });
+    };
+
+    const onScroll = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(updateParallax);
+    };
+
+    onScroll();
+    root.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      root.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    const targets = [
+      ...(leftHeroRef.current?.querySelectorAll<HTMLElement>("[data-sparkle]") ??
+        []),
+      ...(scrollContainerRef.current?.querySelectorAll<HTMLElement>(
+        "[data-sparkle]",
+      ) ?? []),
+    ];
+
+    if (!targets.length) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      gsap.set(targets, { opacity: 0.5, y: 0, x: 0 });
+      return;
+    }
+
+    targets.forEach((sparkle, index) => {
+      gsap.to(sparkle, {
+        opacity: 0.1,
+        y: -8,
+        duration: 2.6 + (index % 4) * 0.6,
+        ease: "sine.inOut",
+        repeat: -1,
+        yoyo: true,
+        delay: (index % 5) * 0.4,
+      });
+      gsap.to(sparkle, {
+        x: 5,
+        duration: 4.5 + (index % 3) * 0.8,
+        ease: "sine.inOut",
+        repeat: -1,
+        yoyo: true,
+        delay: (index % 6) * 0.35,
+      });
+    });
+
+    return () => {
+      gsap.killTweensOf(targets);
+    };
+  }, [heroSparkles, mobileSparkles]);
 
   return (
     <div className="flex flex-col lg:flex-row h-screen">
       {/* Left Half - Hero Section with Background */}
       <div className="hidden lg:flex lg:flex-1 relative lg:h-screen overflow-hidden order-1 lg:order-1">
         {/* Background Transition */}
-        <div className="absolute inset-0">
+        <div
+          ref={leftHeroBgRef}
+          className="absolute inset-0 will-change-transform"
+        >
           <ComponentUIBackgroundTransition
             images={MAIN_BG_IMAGES}
             fitVariant="cover"
@@ -39,30 +324,56 @@ export default function ComponentContentMain() {
         </div>
 
         {/* Centered Content - Wedding Info */}
-        <div className="relative z-10 lg:h-screen h-[50vh] flex flex-col items-center justify-center p-6 md:p-12 text-center text-white">
+        <div
+          ref={leftHeroRef}
+          className="relative z-10 lg:h-screen h-[50vh] flex flex-col items-center justify-center p-6 md:p-12 text-center text-white"
+        >
+          <div className="pointer-events-none absolute inset-0">
+            <div
+              data-hero-shimmer
+              className="absolute -left-1/2 top-0 h-full w-1/3 bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-70 mix-blend-screen"
+            />
+            {heroSparkles.map((sparkle) => (
+              <span
+                key={`hero-sparkle-${sparkle.id}`}
+                data-sparkle
+                className="absolute rounded-full bg-white/80 blur-[1px]"
+                style={{
+                  top: `${sparkle.top}%`,
+                  left: `${sparkle.left}%`,
+                  width: `${sparkle.size}px`,
+                  height: `${sparkle.size}px`,
+                  opacity: sparkle.opacity,
+                }}
+              />
+            ))}
+          </div>
           {/* Wedding Announcement */}
           <div className="space-y-4 md:space-y-6 max-w-lg">
             {/* Pre-title */}
-            <p className="text-sm md:text-xl lg:text-2xl font-light tracking-[0.2em] md:tracking-[0.3em] text-amber-200">
+            <p
+              data-hero-item
+              className="text-sm md:text-xl lg:text-2xl font-light tracking-[0.2em] md:tracking-[0.3em] text-amber-200"
+            >
               THE WEDDING OF
             </p>
 
             {/* Couple Names */}
-            <div className="space-y-1 md:space-y-2">
+            <div data-hero-item className="space-y-1 md:space-y-2">
               <h1 className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white leading-tight">
                 Listia & Dedi
               </h1>
             </div>
 
             {/* Divider */}
-            <div className="flex items-center justify-center gap-4 py-2 md:py-4">
+            <div data-hero-item className="flex items-center justify-center gap-4 py-2 md:py-4">
               <div className="w-12 md:w-16 h-px bg-amber-300/60" />
               <div className="text-amber-300 text-xl md:text-2xl">✦</div>
               <div className="w-12 md:w-16 h-px bg-amber-300/60" />
             </div>
 
             {/* Date & Time */}
-            <div className="space-y-1 md:space-y-2">
+            <div data-hero-item className="space-y-1 md:space-y-2">
               <p className="text-lg md:text-2xl lg:text-3xl font-light tracking-wide">
                 Saturday, December 25, 2026
               </p>
@@ -72,7 +383,7 @@ export default function ComponentContentMain() {
             </div>
 
             {/* Venue */}
-            <div className="pt-4 md:pt-6">
+            <div data-hero-item className="pt-4 md:pt-6">
               <p className="text-base md:text-lg lg:text-xl font-light italic text-white/90">
                 Grand Ballroom, Hotel Indonesia
               </p>
@@ -82,12 +393,12 @@ export default function ComponentContentMain() {
             </div>
 
             {/* Countdown Timer Preview - Hide on mobile for space */}
-            <div className="pt-4 md:pt-6 lg:pt-8 hidden md:block">
+            <div data-hero-item className="pt-4 md:pt-6 lg:pt-8 hidden md:block">
               <DateCountDown />
             </div>
 
             {/* Scroll Indicator - Hide on mobile */}
-            <div className="pt-8 md:pt-12 animate-bounce hidden md:block">
+            <div data-hero-item className="pt-8 md:pt-12 animate-bounce hidden md:block">
               <svg
                 className="w-6 h-6 mx-auto text-amber-300"
                 fill="none"
@@ -111,7 +422,11 @@ export default function ComponentContentMain() {
           isDark ? "bg-neutral-950 text-neutral-100" : "bg-white text-gray-900",
         )}
       >
-        <div className="flex-1 overflow-y-auto" data-scroll-container="true">
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 overflow-y-auto"
+          data-scroll-container="true"
+        >
           {/* Content Container */}
           <div className="max-w-2xl flex flex-col gap-30 mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12 pb-28 space-y-12 md:space-y-16 pt-16 md:pt-20">
             {/* Mobile Mini Hero */}
@@ -122,8 +437,13 @@ export default function ComponentContentMain() {
                   ? "border-neutral-800 bg-neutral-950"
                   : "border-gray-200 bg-white",
               )}
+              data-animate="fade-up"
+              data-float="true"
             >
-              <div className="absolute inset-0">
+              <div
+                ref={mobileHeroBgRef}
+                className="absolute inset-0 will-change-transform"
+              >
                 <ComponentUIBackgroundTransition
                   images={MAIN_BG_IMAGES}
                   fitVariant="cover"
@@ -131,27 +451,60 @@ export default function ComponentContentMain() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/35 to-black/80" />
               </div>
+              <div className="pointer-events-none absolute inset-0">
+                <div
+                  data-shimmer
+                  className="absolute -left-1/2 top-0 h-full w-1/3 bg-gradient-to-r from-transparent via-white/35 to-transparent opacity-70 mix-blend-screen"
+                />
+                {mobileSparkles.map((sparkle) => (
+                  <span
+                    key={`mobile-sparkle-${sparkle.id}`}
+                    data-sparkle
+                    className="absolute rounded-full bg-white/80 blur-[1px]"
+                    style={{
+                      top: `${sparkle.top}%`,
+                      left: `${sparkle.left}%`,
+                      width: `${sparkle.size}px`,
+                      height: `${sparkle.size}px`,
+                      opacity: sparkle.opacity,
+                    }}
+                  />
+                ))}
+              </div>
               <div className="relative z-10 px-6 py-8 text-center text-white">
-                <p className="text-xs tracking-[0.25em] text-amber-200">
+                <p
+                  className="text-xs tracking-[0.25em] text-amber-200"
+                  data-layer
+                >
                   THE WEDDING OF
                 </p>
-                <h2 className="mt-3 text-3xl font-bold">Listia & Dedi</h2>
-                <div className="mx-auto my-4 flex items-center justify-center gap-3">
+                <h2 className="mt-3 text-3xl font-bold" data-layer>
+                  Listia & Dedi
+                </h2>
+                <div
+                  className="mx-auto my-4 flex items-center justify-center gap-3"
+                  data-layer
+                >
                   <span className="h-px w-10 bg-amber-300/60" />
                   <span className="text-amber-300 text-lg">✦</span>
                   <span className="h-px w-10 bg-amber-300/60" />
                 </div>
-                <p className="text-sm text-white/90">
+                <p className="text-sm text-white/90" data-layer>
                   Saturday, December 25, 2026
                 </p>
-                <p className="mt-1 text-xs text-amber-200">
+                <p className="mt-1 text-xs text-amber-200" data-layer>
                   09:00 AM - 13:00 PM
                 </p>
               </div>
             </div>
             {/* Bride & Groom Section */}
-            <section id="couple" className="scroll-mt-20">
-              <div className="text-center mb-10">
+            <section
+              id="couple"
+              className="scroll-mt-20"
+              data-animate="fade-up"
+              data-float="true"
+            >
+              <div className="text-center mb-10" data-layer>
                 <ComponentUITitle
                   className={clsx(
                     "text-3xl",
@@ -171,13 +524,20 @@ export default function ComponentContentMain() {
                   Pasangan pengantin
                 </p>
               </div>
-              <BrideAndGroom theme={theme} />
+              <div data-layer>
+                <BrideAndGroom theme={theme} />
+              </div>
             </section>
 
             {/* Quote Section */}
-            <section id="quote" className="scroll-mt-20">
+            <section
+              id="quote"
+              className="scroll-mt-20"
+              data-animate="fade-up"
+              data-float="true"
+            >
               {/* Flower Decoration - Top */}
-              <div className="flex justify-center mb-8">
+              <div className="flex justify-center mb-8" data-layer>
                 <img
                   src="https://storage.googleapis.com/stateless-swalapatra-com/2022/11/db822cc5-flower.png"
                   alt="Flower decoration"
@@ -193,7 +553,12 @@ export default function ComponentContentMain() {
                     ? "bg-gradient-to-br from-neutral-900 via-neutral-900/95 to-neutral-800 border border-neutral-700/50 shadow-2xl"
                     : "bg-gradient-to-br from-amber-50 via-white to-orange-50 border border-amber-200/60 shadow-xl",
                 )}
+                data-layer
               >
+                <div
+                  data-shimmer
+                  className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/3 bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-70 mix-blend-screen"
+                />
                 {/* Decorative Background Pattern */}
                 <div
                   className={clsx(
@@ -283,7 +648,7 @@ export default function ComponentContentMain() {
               </div>
 
               {/* Flower Decoration - Bottom (flipped) */}
-              <div className="flex justify-center mt-8">
+              <div className="flex justify-center mt-8" data-layer>
                 <img
                   src="https://storage.googleapis.com/stateless-swalapatra-com/2022/11/db822cc5-flower.png"
                   alt="Flower decoration"
@@ -293,8 +658,13 @@ export default function ComponentContentMain() {
             </section>
 
             {/* Gallery Section */}
-            <section id="gallery" className="scroll-mt-20">
-              <div className="text-center mb-10">
+            <section
+              id="gallery"
+              className="scroll-mt-20"
+              data-animate="fade-up"
+              data-float="true"
+            >
+              <div className="text-center mb-10" data-layer>
                 <ComponentUITitle
                   className={clsx(
                     "text-3xl",
@@ -314,12 +684,19 @@ export default function ComponentContentMain() {
                   Momen indah kami
                 </p>
               </div>
-              <Gallery theme={theme} />
+              <div data-layer>
+                <Gallery theme={theme} />
+              </div>
             </section>
 
             {/* Event Details Section */}
-            <section id="event" className="scroll-mt-20">
-              <div className="text-center mb-10">
+            <section
+              id="event"
+              className="scroll-mt-20"
+              data-animate="fade-up"
+              data-float="true"
+            >
+              <div className="text-center mb-10" data-layer>
                 <ComponentUITitle
                   className={clsx(
                     "text-3xl",
@@ -339,7 +716,7 @@ export default function ComponentContentMain() {
                   Detail pernikahan
                 </p>
               </div>
-              <div className="space-y-6">
+              <div className="space-y-6" data-layer>
                 {/* DateCountDown with Slideshow Background */}
                 <div
                   className={clsx(
@@ -350,7 +727,10 @@ export default function ComponentContentMain() {
                   )}
                 >
                   {/* Slideshow Background */}
-                  <div className="absolute inset-0">
+                  <div
+                    ref={eventHeroBgRef}
+                    className="absolute inset-0 will-change-transform"
+                  >
                     <ComponentUIBackgroundTransition
                       images={MAIN_BG_IMAGES}
                       fitVariant="cover"
@@ -366,6 +746,10 @@ export default function ComponentContentMain() {
                       )}
                     />
                   </div>
+                  <div
+                    data-shimmer
+                    className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/3 bg-gradient-to-r from-transparent via-white/35 to-transparent opacity-70 mix-blend-screen"
+                  />
                   {/* DateCountDown - centered and smaller */}
                   <div className="relative z-10 h-full flex items-center justify-center p-6">
 
@@ -510,8 +894,13 @@ export default function ComponentContentMain() {
             </section>
 
             {/* Gift Giving Section */}
-            <section id="gift" className="scroll-mt-20">
-              <div className="text-center mb-10">
+            <section
+              id="gift"
+              className="scroll-mt-20"
+              data-animate="fade-up"
+              data-float="true"
+            >
+              <div className="text-center mb-10" data-layer>
                 <ComponentUITitle
                   className={clsx(
                     "text-3xl",
@@ -531,11 +920,18 @@ export default function ComponentContentMain() {
                   Kirim hadiah pernikahan
                 </p>
               </div>
-              <GiftGiving theme={theme} />
+              <div data-layer>
+                <GiftGiving theme={theme} />
+              </div>
             </section>
 
-            <section id="greetings" className="scroll-mt-20">
-              <div className="text-center mb-10">
+            <section
+              id="greetings"
+              className="scroll-mt-20"
+              data-animate="fade-up"
+              data-float="true"
+            >
+              <div className="text-center mb-10" data-layer>
                 <ComponentUITitle
                   className={clsx(
                     "text-3xl",
@@ -555,7 +951,9 @@ export default function ComponentContentMain() {
                   Kirim ucapan & doa
                 </p>
               </div>
-              <WeddingGreetings theme={theme} />
+              <div data-layer>
+                <WeddingGreetings theme={theme} />
+              </div>
             </section>
 
             {/* Footer */}
@@ -566,8 +964,14 @@ export default function ComponentContentMain() {
                   ? "border-neutral-800 bg-neutral-950"
                   : "border-amber-100 bg-amber-50",
               )}
+              data-animate="fade-up"
+              data-float="true"
             >
-              <div className="mx-auto w-24">
+              <div
+                data-shimmer
+                className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/3 bg-gradient-to-r from-transparent via-white/35 to-transparent opacity-70 mix-blend-screen"
+              />
+              <div className="mx-auto w-24" data-layer>
                 <ComponentUIGradientImage
                   fitVariant="contain"
                   lazy
@@ -581,6 +985,7 @@ export default function ComponentContentMain() {
                   "mt-4 text-sm font-semibold tracking-wide",
                   isDark ? "text-neutral-200" : "text-gray-700",
                 )}
+                data-layer
               >
                 Listia & Dedi
               </p>
