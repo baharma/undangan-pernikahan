@@ -10,15 +10,10 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useRouter } from "next/navigation";
-
-interface Heart {
-  id: number;
-  top: number;
-  left: number;
-  size: string;
-  opacity: number;
-  duration: number;
-}
+import {
+  generateRandomHearts,
+  type RandomHeart,
+} from "@/utils/generateRandomHearts";
 
 interface Particle {
   id: number;
@@ -42,23 +37,8 @@ function generateSpiralParticles(count: number): Particle[] {
   }));
 }
 
-function generateRandomHearts(count: number): Heart[] {
-  return Array.from({ length: count }, (_, i) => ({
-    id: i,
-    top: Math.random() * 80 + 5,
-    left: Math.random() * 80 + 5,
-    size: ["text-2xl", "text-3xl", "text-4xl", "text-5xl", "text-6xl"][
-      Math.floor(Math.random() * 5)
-    ],
-    opacity: Math.random() * 0.15 + 0.05,
-    duration: Math.random() * 2 + 2,
-  }));
-}
-
-
-
 export default function ComponentContentHome() {
-  const [hearts, setHearts] = useState<Heart[]>([]);
+  const [hearts, setHearts] = useState<RandomHeart[]>([]);
   const [mounted, setMounted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [fallingStars, setFallingStars] = useState<Particle[]>([]);

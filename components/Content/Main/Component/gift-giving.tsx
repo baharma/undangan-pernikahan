@@ -2,17 +2,21 @@
 
 import { useState } from "react";
 import clsx from "clsx";
+import { FaRegCopy, FaCheck } from "react-icons/fa";
+import FloatingOrnaments from "./floating-ornaments";
 
 const gifts = [
   {
     bank: "BCA",
-    number: "123 456 7890",
-    name: "Listia",
+    number: "123123123",
+    name: "Putri Cantika Sari",
+    logo: "https://the.invisimple.id/wp-content/uploads/2024/10/bca.png",
   },
   {
-    bank: "Mandiri",
-    number: "987 654 3210",
-    name: "Dedi",
+    bank: "BRI",
+    number: "321321321",
+    name: "Putra Andika Pratama",
+    logo: "https://the.invisimple.id/wp-content/uploads/2024/10/bri.png",
   },
 ];
 
@@ -23,6 +27,8 @@ type GiftGivingProps = {
 export default function GiftGiving({ theme = "light" }: GiftGivingProps) {
   const isDark = theme === "dark";
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const chipImage =
+    "https://the.invisimple.id/wp-content/uploads/2024/10/chip-ilustration.png";
 
   const copyToClipboard = async (number: string, id: string) => {
     try {
@@ -36,96 +42,122 @@ export default function GiftGiving({ theme = "light" }: GiftGivingProps) {
   };
 
   return (
-    <div className="space-y-5">
-      <div
-        className={clsx(
-          "rounded-2xl border p-4 text-sm",
-          isDark ? "border-neutral-800 bg-neutral-900/60 text-neutral-300" : "border-gray-100 bg-white text-gray-600",
-        )}
-      >
-        Doa restu Anda adalah hadiah terbaik. Jika ingin memberi hadiah,
-        silakan transfer ke rekening berikut.
-      </div>
+    <div className="relative">
+      <FloatingOrnaments
+        imageSrc="https://the.invisimple.id/wp-content/uploads/2024/09/asset-01-01.png"
+        size="sm"
+        className="z-0"
+      />
+      <div className="relative z-10 space-y-5">
+        <div
+          className={clsx(
+            "rounded-2xl border p-4 text-sm backdrop-blur-sm",
+            isDark
+              ? "border-neutral-800 bg-neutral-900/60 text-neutral-300"
+              : "border-gray-200/80 bg-white/80 text-gray-600",
+          )}
+        >
+          Doa restu Anda adalah hadiah terbaik. Jika ingin memberi hadiah,
+          silakan transfer ke rekening berikut.
+        </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {gifts.map((gift) => {
-          const isCopied = copiedId === gift.number;
+        <div className="grid gap-4 md:grid-cols-2">
+          {gifts.map((gift) => {
+            const isCopied = copiedId === gift.number;
 
-          return (
-            <div
-              key={gift.number}
-              className={clsx(
-                "rounded-2xl border p-5 shadow-sm",
-                isDark
-                  ? "border-neutral-800 bg-neutral-900/80"
-                  : "border-gray-100 bg-white",
-              )}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p
-                    className={clsx(
-                      "text-xs font-semibold uppercase tracking-[0.2em]",
-                      isDark ? "text-neutral-400" : "text-gray-500",
-                    )}
-                  >
-                    Bank
-                  </p>
-                  <p
-                    className={clsx(
-                      "text-lg font-semibold",
-                      isDark ? "text-neutral-100" : "text-gray-800",
-                    )}
-                  >
-                    {gift.bank}
-                  </p>
-                  <p
-                    className={clsx(
-                      "mt-1 text-sm",
-                      isDark ? "text-neutral-400" : "text-gray-500",
-                    )}
-                  >
-                    {gift.name}
-                  </p>
+            return (
+              <div
+                key={gift.number}
+                className={clsx(
+                  "relative overflow-hidden rounded-3xl border p-6 shadow-sm",
+                  isDark
+                    ? "border-neutral-800 bg-neutral-900/80"
+                    : "border-amber-100/70 bg-white/90",
+                )}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={gift.logo}
+                        alt={`${gift.bank} logo`}
+                        className="h-8 w-auto"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div>
+                      <p
+                        className={clsx(
+                          "text-[11px] font-semibold uppercase tracking-[0.2em]",
+                          isDark ? "text-neutral-400" : "text-gray-500",
+                        )}
+                      >
+                        No Rekening
+                      </p>
+                      <p
+                        className={clsx(
+                          "mt-1 text-lg font-semibold tracking-wider",
+                          isDark ? "text-neutral-100" : "text-gray-800",
+                        )}
+                      >
+                        {gift.number}
+                      </p>
+                    </div>
+                    <div>
+                      <p
+                        className={clsx(
+                          "text-[11px] font-semibold uppercase tracking-[0.2em]",
+                          isDark ? "text-neutral-400" : "text-gray-500",
+                        )}
+                      >
+                        Atas Nama
+                      </p>
+                      <p
+                        className={clsx(
+                          "mt-1 text-sm font-medium",
+                          isDark ? "text-neutral-300" : "text-gray-700",
+                        )}
+                      >
+                        {gift.name}
+                      </p>
+                    </div>
+                  </div>
+
+                  <img
+                    src={chipImage}
+                    alt=""
+                    className="h-16 w-auto opacity-80"
+                    aria-hidden="true"
+                    loading="lazy"
+                  />
                 </div>
-                <div
+
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(gift.number, gift.number)}
                   className={clsx(
-                    "rounded-xl px-3 py-1 text-xs font-semibold",
+                    "mt-5 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition",
                     isDark
-                      ? "bg-amber-400/10 text-amber-200"
-                      : "bg-amber-100 text-amber-700",
+                      ? "bg-amber-400 text-neutral-900 hover:bg-amber-300"
+                      : "bg-amber-600 text-white hover:bg-amber-700",
                   )}
                 >
-                  Rekening
-                </div>
+                  {isCopied ? (
+                    <>
+                      <FaCheck className="text-xs" />
+                      Tersalin
+                    </>
+                  ) : (
+                    <>
+                      <FaRegCopy className="text-xs" />
+                      Salin
+                    </>
+                  )}
+                </button>
               </div>
-
-              <div
-                className={clsx(
-                  "mt-4 rounded-xl border px-4 py-3 font-mono text-base tracking-wider",
-                  isDark
-                    ? "border-neutral-800 bg-neutral-950 text-neutral-200"
-                    : "border-gray-200 bg-white text-gray-700",
-                )}
-              >
-                {gift.number}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => copyToClipboard(gift.number, gift.number)}
-                className={clsx(
-                  "mt-4 w-full rounded-xl px-4 py-2 text-sm font-semibold transition",
-                  isDark
-                    ? "bg-amber-400 text-neutral-900 hover:bg-amber-300"
-                    : "bg-amber-500 text-white hover:bg-amber-600",
-                )}
-              >
-                {isCopied ? "Tersalin" : "Salin Nomor"}
-              </button>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

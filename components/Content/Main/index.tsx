@@ -7,13 +7,20 @@ import { useGSAP } from "@gsap/react";
 import ComponentUIBackgroundTransition from "@/components/UI/BackgroundTransition";
 import ComponentUIGradientImage from "@/components/UI/GradientImage";
 import ComponentUITitle from "@/components/UI/Title";
+import ComponentUIIcon from "@/components/UI/Icon";
 import BottomNavigator from "@/components/UI/BottomNavigator";
 import BrideAndGroom from "./Component/bride-and-groom";
+import FloatingOrnaments from "./Component/floating-ornaments";
 import DateCountDown from "./Component/date-count-down";
 import Story from "./Component/story";
 import Gallery from "./Component/gallery";
 import GiftGiving from "./Component/gift-giving";
 import WeddingGreetings from "./Component/wedding-greetings";
+import { FaHeart } from "react-icons/fa";
+import {
+  generateRandomHearts,
+  type RandomHeart,
+} from "@/utils/generateRandomHearts";
 
 const MAIN_BG_IMAGES = [
   "https://i.pinimg.com/736x/79/e7/e9/79e7e9f5520a7384979880271f324692.jpg",
@@ -39,6 +46,8 @@ export default function ComponentContentMain() {
   const eventHeroBgRef = useRef<HTMLDivElement>(null);
   const [heroSparkles, setHeroSparkles] = useState<Sparkle[]>([]);
   const [mobileSparkles, setMobileSparkles] = useState<Sparkle[]>([]);
+  const [hearts, setHearts] = useState<RandomHeart[]>([]);
+  const [heartsMounted, setHeartsMounted] = useState(false);
 
   useEffect(() => {
     const createSparkles = (count: number, sizeMin: number, sizeRange: number) =>
@@ -52,6 +61,11 @@ export default function ComponentContentMain() {
 
     setHeroSparkles(createSparkles(16, 2, 3));
     setMobileSparkles(createSparkles(8, 1.5, 2.5));
+  }, []);
+
+  useEffect(() => {
+    setHearts(generateRandomHearts(8));
+    setHeartsMounted(true);
   }, []);
 
   useGSAP(
@@ -422,9 +436,33 @@ export default function ComponentContentMain() {
           isDark ? "bg-neutral-950 text-neutral-100" : "bg-white text-gray-900",
         )}
       >
+        {heartsMounted && (
+          <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+            {hearts.map((heart) => (
+              <div
+                key={`main-heart-${heart.id}`}
+                className="absolute"
+                style={{
+                  top: `${heart.top}%`,
+                  left: `${heart.left}%`,
+                  opacity: heart.opacity,
+                }}
+              >
+                <ComponentUIIcon
+                  size={heart.size}
+                  color="#D4AF37"
+                  animation="float"
+                  duration={heart.duration}
+                >
+                  <FaHeart />
+                </ComponentUIIcon>
+              </div>
+            ))}
+          </div>
+        )}
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto"
+          className="flex-1 overflow-y-auto relative z-10"
           data-scroll-container="true"
         >
           {/* Content Container */}
@@ -500,10 +538,11 @@ export default function ComponentContentMain() {
             {/* Bride & Groom Section */}
             <section
               id="couple"
-              className="scroll-mt-20"
+              className="scroll-mt-20 relative"
               data-animate="fade-up"
               data-float="true"
             >
+              <FloatingOrnaments imageSrc="https://the.invisimple.id/wp-content/uploads/2024/09/asset-01-01.png" />
               <div className="text-center mb-10" data-layer>
                 <ComponentUITitle
                   className={clsx(
@@ -716,11 +755,11 @@ export default function ComponentContentMain() {
                   Detail pernikahan
                 </p>
               </div>
-              <div className="space-y-6" data-layer>
+              <div className="space-y-6 " data-layer>
                 {/* DateCountDown with Slideshow Background */}
                 <div
                   className={clsx(
-                    "relative rounded-2xl overflow-hidden shadow-lg h-[500px]",
+                    "relative rounded-2xl overflow-hidden shadow-lg h-500",
                     isDark
                       ? "border border-neutral-800"
                       : "border border-amber-200/50",
@@ -823,7 +862,7 @@ export default function ComponentContentMain() {
                 {/* Google Maps */}
                 <div
                   className={clsx(
-                    "rounded-2xl overflow-hidden shadow-lg border ",
+                    "rounded-2xl overflow-hidden shadow-lg border px-2 py-10",
                     isDark ? "border-neutral-800" : "border-gray-200",
                   )}
                 >
