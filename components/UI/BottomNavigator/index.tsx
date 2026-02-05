@@ -84,32 +84,60 @@ export default function BottomNavigator({
 
   useEffect(() => {
     if (!musicSrc) return;
-    audioRef.current = new Audio(musicSrc);
-    audioRef.current.loop = true;
-    audioRef.current.preload = "none";
+    const audio = new Audio(musicSrc);
+    audio.loop = true;
+    audio.preload = "auto";
+    audioRef.current = audio;
+
+    const syncPlayingState = () => {
+      setIsPlaying(!audio.paused);
+    };
+
+    const tryPlay = async () => {
+      try {
+        await audio.play();
+        setIsPlaying(true);
+      } catch {
+        setIsPlaying(false);
+      }
+    };
+
+    const handleFirstInteraction = () => {
+      void tryPlay();
+    };
+
+    audio.addEventListener("play", syncPlayingState);
+    audio.addEventListener("pause", syncPlayingState);
+
+    void tryPlay();
+    window.addEventListener("pointerdown", handleFirstInteraction, {
+      once: true,
+    });
+    window.addEventListener("keydown", handleFirstInteraction, { once: true });
 
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      window.removeEventListener("pointerdown", handleFirstInteraction);
+      window.removeEventListener("keydown", handleFirstInteraction);
+      audio.removeEventListener("play", syncPlayingState);
+      audio.removeEventListener("pause", syncPlayingState);
+      audio.pause();
+      if (audioRef.current === audio) audioRef.current = null;
     };
   }, [musicSrc]);
 
   const handleToggleMusic = async () => {
-    if (!audioRef.current) {
-      setIsPlaying((prev) => !prev);
+    const audio = audioRef.current;
+    if (!audio) {
       return;
     }
 
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
+    if (!audio.paused) {
+      audio.pause();
       return;
     }
 
     try {
-      await audioRef.current.play();
+      await audio.play();
       setIsPlaying(true);
     } catch {
       setIsPlaying(false);
@@ -131,7 +159,7 @@ export default function BottomNavigator({
           aria-pressed={isPlaying}
           onClick={handleToggleMusic}
           className={clsx(
-            "absolute -top-[5.5rem] md:-top-[8.5rem] right-6 z-20 flex h-32 w-32 items-center justify-center rounded-full border-2 shadow-lg transition-all duration-300",
+            "absolute -top-80 right-6 z-20 flex h-32 w-32 items-center justify-center rounded-full border-2 shadow-lg transition-all duration-300",
             "backdrop-blur-md will-change-transform",
             isDark
               ? "bg-neutral-900/90 text-amber-200 border-amber-600 shadow-amber-200/20"

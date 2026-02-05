@@ -1054,7 +1054,7 @@ export default function ComponentContentMain() {
           theme={theme}
           showLamp
           showMusic
-          musicSrc="/audio/music.mp3"
+          musicSrc="/Westlife%20-%20Beautiful%20in%20white%20(Lyrics)%20%5BTrjrj_fQnIM%5D.mp3"
           isDark={isDark}
           onToggleTheme={() => setIsDark((prev) => !prev)}
         />
