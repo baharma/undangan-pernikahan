@@ -1,1 +1,15 @@
-<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 1200 800"
+  role="img"
+  aria-label="Pawiwahan Dedi dan Listya"
+>
+  <image
+    href="/image/MRX09363.jpg"
+    x="0"
+    y="0"
+    width="1200"
+    height="800"
+    preserveAspectRatio="xMidYMid slice"
+  />
+</svg>
