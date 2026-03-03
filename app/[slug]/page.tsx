@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import ComponentContentHome from "@/components/Content/Home";
 
+const OG_IMAGE_PATH = "/og-whatsapp.jpg";
+
 type PageProps = {
   params: Promise<{ slug: string }> | { slug: string };
 };
@@ -43,9 +45,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       images: [
         {
-          url: "/image/MRX09363.jpg",
-          width: 5616,
-          height: 3744,
+          url: OG_IMAGE_PATH,
+          width: 1200,
+          height: 800,
+          type: "image/jpeg",
           alt: "Undangan Pawiwahan Dedi & Listya",
         },
       ],
@@ -54,7 +57,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: "summary_large_image",
       title,
       description,
-      images: ["/image/MRX09363.jpg"],
+      images: [OG_IMAGE_PATH],
     },
   };
 }

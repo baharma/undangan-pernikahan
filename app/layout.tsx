@@ -19,7 +19,12 @@ const pacifico = Pacifico({
   weight: "400",
 });
 
-const siteUrl = "https://pawiwahan-dedi-listya.my.id/" ;
+const DEFAULT_SITE_URL = "https://pawiwahan-dedi-listya.my.id";
+const OG_IMAGE_PATH = "/og-whatsapp.jpg";
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_SITE_URL).replace(
+  /\/$/,
+  "",
+);
 
 const metadataBase = (() => {
   try {
@@ -42,9 +47,10 @@ export const metadata: Metadata = {
     siteName: "Pawiwahan Dedi & Listya",
     images: [
       {
-        url: "/image/MRX09363.jpg",
-        width: 5616,
-        height: 3744,
+        url: OG_IMAGE_PATH,
+        width: 1200,
+        height: 800,
+        type: "image/jpeg",
         alt: "Undangan Pawiwahan Dedi & Listya",
       },
     ],
@@ -53,7 +59,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Pawiwahan Dedi & Listya",
     description: "Pawiwahan Dedi & Listya",
-    images: ["/image/MRX09363.jpg"],
+    images: [OG_IMAGE_PATH],
   },
 };
 
