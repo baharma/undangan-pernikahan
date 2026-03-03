@@ -2,7 +2,7 @@ import ComponentUIGradientImage from "@/components/UI/GradientImage";
 
 const profiles = [
   {
-    nickname: "Listia",
+    nickname: "Listya",
     fullName: "-",
     detail:
       "Putri dari pasangan Bapak Ketut sukrayasa & Ibu Nyoman siartini.",

@@ -352,7 +352,7 @@ export default function ComponentContentHome() {
             font="pacifico"
             as="h1"
           >
-            Dedi & Listia
+            Dedi & Listya
           </ComponentUITitle>
         </div>
 

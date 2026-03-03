@@ -1,7 +1,8 @@
 "use client";
 
 import clsx from "clsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Models } from "appwrite";
 import ComponentUIGradientImage from "@/components/UI/GradientImage";
@@ -21,6 +22,12 @@ type GreetingDocument = Models.Document & {
 
 const dividerImage =
   "https://storage.googleapis.com/stateless-swalapatra-com/2022/12/345dfe2b-leaves-gold-divider-ptsd9ydbcwhhbb2jkonn21n0w8vtqyp4vffp5pvtba.png";
+const INVITED_NAME_STORAGE_KEY = "invitedName";
+const ATTENDANCE_SUBMITTED_PREFIX = "weddingAttendanceSubmitted";
+const ATTENDANCE_ANSWER_PREFIX = "weddingAttendanceAnswer";
+
+const getVisitorStorageId = (value: string) =>
+  encodeURIComponent((value.trim() || "guest").toLowerCase());
 
 const formatDate = (value?: string) => {
   if (!value) return "";
@@ -76,7 +83,13 @@ export default function WeddingGreetings({
   const [name, setName] = useState("");
   const [content, setContent] = useState("");
   const [attendance, setAttendance] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [prefilledName, setPrefilledName] = useState("");
+  const [isNameLocked, setIsNameLocked] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [hasSubmittedLocally, setHasSubmittedLocally] = useState(false);
+  const [showAttendanceModal, setShowAttendanceModal] = useState(false);
+  const [submittedAttendance, setSubmittedAttendance] =
+    useState<AttendanceOption | null>(null);
   const queryClient = useQueryClient();
 
   const {
@@ -89,103 +102,117 @@ export default function WeddingGreetings({
     queryFn: fetchGreetings,
   });
 
+  useEffect(() => {
+    try {
+      const storedInvitedName =
+        localStorage.getItem(INVITED_NAME_STORAGE_KEY)?.trim() ?? "";
+      const storageId = getVisitorStorageId(storedInvitedName);
+      const submittedKey = `${ATTENDANCE_SUBMITTED_PREFIX}:${storageId}`;
+      const attendanceKey = `${ATTENDANCE_ANSWER_PREFIX}:${storageId}`;
+      const isAlreadySubmitted = localStorage.getItem(submittedKey) === "1";
+      const storedAttendance = localStorage.getItem(attendanceKey);
+
+      if (storedInvitedName) {
+        setName(storedInvitedName);
+        setPrefilledName(storedInvitedName);
+        setIsNameLocked(true);
+      }
+
+      if (storedAttendance === "Hadir" || storedAttendance === "Tidak hadir") {
+        setAttendance(storedAttendance);
+        setSubmittedAttendance(storedAttendance);
+      }
+
+      setHasSubmittedLocally(isAlreadySubmitted);
+      setShowAttendanceModal(!isAlreadySubmitted);
+    } finally {
+      setIsHydrated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated || hasSubmittedLocally) return;
+    setShowAttendanceModal(true);
+  }, [isHydrated, hasSubmittedLocally]);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    if (hasSubmittedLocally || !showAttendanceModal) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isHydrated, hasSubmittedLocally, showAttendanceModal]);
+
   const createMutation = useMutation({
     mutationFn: async (payload: {
       name: string;
       content: string;
       kehadiran: AttendanceOption;
       createdAt: string;
+      localStorageId: string;
     }) => {
       return requestJson<{ document: GreetingDocument }>("/api/comment", {
         method: "POST",
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          name: payload.name,
+          content: payload.content,
+          kehadiran: payload.kehadiran,
+          createdAt: payload.createdAt,
+        }),
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["wedding-greetings"] });
-    },
-  });
+    onSuccess: (_data, variables) => {
+      const submittedKey = `${ATTENDANCE_SUBMITTED_PREFIX}:${variables.localStorageId}`;
+      const attendanceKey = `${ATTENDANCE_ANSWER_PREFIX}:${variables.localStorageId}`;
 
-  const updateMutation = useMutation({
-    mutationFn: async (payload: {
-      id: string;
-      name: string;
-      content: string;
-      kehadiran: AttendanceOption;
-    }) => {
-      return requestJson<{ document: GreetingDocument }>("/api/comment", {
-        method: "PUT",
-        body: JSON.stringify(payload),
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["wedding-greetings"] });
-    },
-  });
+      try {
+        localStorage.setItem(submittedKey, "1");
+        localStorage.setItem(attendanceKey, variables.kehadiran);
+      } catch {
+        // ignore localStorage failures
+      }
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return requestJson<{ success: boolean }>("/api/comment", {
-        method: "DELETE",
-        body: JSON.stringify({ id }),
-      });
-    },
-    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wedding-greetings"] });
+      setHasSubmittedLocally(true);
+      setShowAttendanceModal(false);
+      setSubmittedAttendance(variables.kehadiran);
+      setContent("");
+      setAttendance("");
+      setName(isNameLocked ? prefilledName : "");
     },
   });
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (hasSubmittedLocally) return;
 
     const trimmedName = name.trim();
     const trimmedContent = content.trim();
     const trimmedAttendance = attendance.trim();
-    if (!trimmedName || !trimmedContent || !trimmedAttendance) return;
+    if (
+      !trimmedName ||
+      !trimmedContent ||
+      (trimmedAttendance !== "Hadir" && trimmedAttendance !== "Tidak hadir")
+    )
+      return;
 
-    if (editingId) {
-      updateMutation.mutate({
-        id: editingId,
-        name: trimmedName,
-        content: trimmedContent,
-        kehadiran: trimmedAttendance as AttendanceOption,
-      });
-    } else {
-      createMutation.mutate({
-        name: trimmedName,
-        content: trimmedContent,
-        kehadiran: trimmedAttendance as AttendanceOption,
-        createdAt: new Date().toISOString(),
-      });
-    }
-
-    setName("");
-    setContent("");
-    setAttendance("");
-    setEditingId(null);
+    createMutation.mutate({
+      name: trimmedName,
+      content: trimmedContent,
+      kehadiran: trimmedAttendance,
+      createdAt: new Date().toISOString(),
+      localStorageId: getVisitorStorageId(trimmedName),
+    });
   };
 
-  const handleEdit = (greeting: GreetingDocument) => {
-    setName(greeting.name ?? "");
-    setContent(greeting.content ?? "");
-    setAttendance(greeting.kehadiran ?? "");
-    setEditingId(greeting.$id);
-  };
-
-  const handleCancelEdit = () => {
-    setName("");
-    setContent("");
-    setAttendance("");
-    setEditingId(null);
-  };
-
-  const handleDelete = (id: string) => {
-    if (!confirm("Hapus ucapan ini?")) return;
-    deleteMutation.mutate(id);
-  };
-
-  const isSaving = createMutation.isPending || updateMutation.isPending;
+  const isSaving = createMutation.isPending;
   const totalLabel = isLoading ? "..." : greetings.length;
+  const shouldShowMandatoryModal =
+    isHydrated && !hasSubmittedLocally && showAttendanceModal;
 
   return (
     <div className="space-y-6">
@@ -220,125 +247,175 @@ export default function WeddingGreetings({
         </div>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className={clsx(
-          "space-y-4 rounded-2xl border p-6 shadow-lg",
-          isDark
-            ? "border-neutral-800 bg-neutral-900/80"
-            : "border-gray-100 bg-white",
-        )}
-      >
-        <div>
-          <label
-            className={clsx(
-              "block text-sm font-medium",
-              isDark ? "text-neutral-200" : "text-gray-700",
-            )}
-          >
-            Nama
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            className={clsx(
-              "mt-2 w-full rounded-xl border px-4 py-2 focus:border-amber-400 focus:outline-none",
-              isDark
-                ? "border-neutral-700 bg-neutral-900 text-neutral-100 placeholder:text-neutral-500"
-                : "border-gray-200 text-gray-700 placeholder:text-gray-400",
-            )}
-            disabled={isSaving}
-            maxLength={100}
-            placeholder="Nama Anda"
-          />
+      {!isHydrated ? (
+        <div
+          className={clsx(
+            "rounded-2xl border p-5 text-center text-sm",
+            isDark
+              ? "border-neutral-800 bg-neutral-900/60 text-neutral-400"
+              : "border-gray-100 bg-white text-gray-500",
+          )}
+        >
+          Memuat status kehadiran...
         </div>
-        <div>
-          <label
-            className={clsx(
-              "block text-sm font-medium",
-              isDark ? "text-neutral-200" : "text-gray-700",
-            )}
-          >
-            Ucapan & Doa
-          </label>
-          <textarea
-            value={content}
-            onChange={(event) => setContent(event.target.value)}
-            className={clsx(
-              "mt-2 w-full rounded-xl border px-4 py-2 focus:border-amber-400 focus:outline-none",
-              isDark
-                ? "border-neutral-700 bg-neutral-900 text-neutral-100 placeholder:text-neutral-500"
-                : "border-gray-200 text-gray-700 placeholder:text-gray-400",
-            )}
-            disabled={isSaving}
-            maxLength={102}
-            rows={3}
-            placeholder="Tuliskan ucapan terbaik Anda"
-          />
+      ) : hasSubmittedLocally ? (
+        <div
+          className={clsx(
+            "rounded-2xl border p-5 text-center text-sm",
+            isDark
+              ? "border-emerald-500/30 bg-emerald-400/10 text-emerald-200"
+              : "border-emerald-200 bg-emerald-50 text-emerald-700",
+          )}
+        >
+          Terima kasih, Anda sudah mengisi kehadiran
+          {submittedAttendance ? ` (${submittedAttendance})` : ""}.
         </div>
-        <div>
-          <label
-            className={clsx(
-              "block text-sm font-medium",
-              isDark ? "text-neutral-200" : "text-gray-700",
-            )}
-          >
-            Konfirmasi Kehadiran
-          </label>
-          <select
-            value={attendance}
-            onChange={(event) => setAttendance(event.target.value)}
-            className={clsx(
-              "mt-2 w-full rounded-xl border px-4 py-2 focus:border-amber-400 focus:outline-none",
-              isDark
-                ? "border-neutral-700 bg-neutral-900 text-neutral-100"
-                : "border-gray-200 text-gray-700",
-            )}
-            disabled={isSaving}
-          >
-            <option value="" disabled>
-              Pilih konfirmasi kehadiran
-            </option>
-            <option value="Hadir">Hadir</option>
-            <option value="Tidak hadir">Tidak hadir</option>
-          </select>
+      ) : (
+        <div
+          className={clsx(
+            "rounded-2xl border p-5 text-center text-sm",
+            isDark
+              ? "border-neutral-800 bg-neutral-900/60 text-neutral-300"
+              : "border-gray-100 bg-white text-gray-600",
+          )}
+        >
+          <p>Silakan isi kehadiran sekali. Form wajib diisi sebelum lanjut.</p>
         </div>
-        <div className="space-y-3">
-          <button
-            type="submit"
-            className={clsx(
-              "w-full rounded-full px-4 py-3 text-sm font-semibold shadow-md transition",
-              isDark
-                ? "bg-amber-400 text-neutral-900 hover:bg-amber-300"
-                : "bg-amber-500 text-white hover:bg-amber-600",
-            )}
-            disabled={isSaving}
-          >
-            {editingId ? "Simpan Perubahan" : "Kirim Ucapan"}
-          </button>
-          {editingId ? (
-            <button
-              type="button"
-              onClick={handleCancelEdit}
-              className={clsx(
-                "w-full rounded-full px-4 py-2 text-xs font-semibold",
-                isDark
-                  ? "border border-neutral-700 text-neutral-200 hover:bg-neutral-800"
-                  : "border border-gray-200 text-gray-600 hover:bg-gray-100",
-              )}
-              disabled={isSaving}
-            >
-              Batalkan Edit
-            </button>
-          ) : null}
-        </div>
-        {createMutation.isError ? (
-          <p className={clsx("text-xs", isDark ? "text-rose-300" : "text-rose-600")}>
-            {(createMutation.error as Error)?.message || "Gagal mengirim ucapan."}
-          </p>
-        ) : null}
-      </form>
+      )}
+
+      {shouldShowMandatoryModal
+        ? createPortal(
+            <div className="fixed inset-0 z-[99999] flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black/60 p-4">
+              <div className="relative w-full max-w-md max-h-full">
+                <div
+                  role="dialog"
+                  aria-modal="true"
+                  className={clsx(
+                    "relative rounded-lg border shadow-xl",
+                    isDark
+                      ? "border-neutral-800 bg-neutral-900 text-neutral-100"
+                      : "border-gray-200 bg-white text-gray-800",
+                  )}
+                >
+                  <div
+                    className={clsx(
+                      "flex items-start justify-between rounded-t border-b p-4 md:p-5",
+                      isDark ? "border-neutral-800" : "border-gray-200",
+                    )}
+                  >
+                    <div>
+                      <h3 className="text-lg font-semibold">Konfirmasi Kehadiran</h3>
+                      <p className={clsx("mt-1 text-sm", isDark ? "text-neutral-400" : "text-gray-500")}>
+                        Isi sekali saja untuk mencegah spam pada buku tamu.
+                      </p>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-5">
+                    <div>
+                      <label
+                        className={clsx(
+                          "block text-sm font-medium",
+                          isDark ? "text-neutral-200" : "text-gray-700",
+                        )}
+                      >
+                        Nama
+                      </label>
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(event) => setName(event.target.value)}
+                        className={clsx(
+                          "mt-2 w-full rounded-lg border px-4 py-2.5 focus:border-amber-400 focus:outline-none",
+                          isDark
+                            ? "border-neutral-700 bg-neutral-900 text-neutral-100 placeholder:text-neutral-500"
+                            : "border-gray-300 text-gray-700 placeholder:text-gray-400",
+                        )}
+                        disabled={isSaving}
+                        readOnly={isNameLocked}
+                        maxLength={100}
+                        placeholder="Nama Anda"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        className={clsx(
+                          "block text-sm font-medium",
+                          isDark ? "text-neutral-200" : "text-gray-700",
+                        )}
+                      >
+                        Ucapan & Doa
+                      </label>
+                      <textarea
+                        value={content}
+                        onChange={(event) => setContent(event.target.value)}
+                        className={clsx(
+                          "mt-2 w-full rounded-lg border px-4 py-2.5 focus:border-amber-400 focus:outline-none",
+                          isDark
+                            ? "border-neutral-700 bg-neutral-900 text-neutral-100 placeholder:text-neutral-500"
+                            : "border-gray-300 text-gray-700 placeholder:text-gray-400",
+                        )}
+                        disabled={isSaving}
+                        maxLength={102}
+                        rows={3}
+                        placeholder="Tuliskan ucapan terbaik Anda"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        className={clsx(
+                          "block text-sm font-medium",
+                          isDark ? "text-neutral-200" : "text-gray-700",
+                        )}
+                      >
+                        Konfirmasi Kehadiran
+                      </label>
+                      <select
+                        value={attendance}
+                        onChange={(event) => setAttendance(event.target.value)}
+                        className={clsx(
+                          "mt-2 w-full rounded-lg border px-4 py-2.5 focus:border-amber-400 focus:outline-none",
+                          isDark
+                            ? "border-neutral-700 bg-neutral-900 text-neutral-100"
+                            : "border-gray-300 text-gray-700",
+                        )}
+                        disabled={isSaving}
+                      >
+                        <option value="" disabled>
+                          Pilih konfirmasi kehadiran
+                        </option>
+                        <option value="Hadir">Hadir</option>
+                        <option value="Tidak hadir">Tidak hadir</option>
+                      </select>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className={clsx(
+                        "w-full rounded-lg px-5 py-2.5 text-sm font-medium",
+                        isDark
+                          ? "bg-amber-400 text-neutral-900 hover:bg-amber-300"
+                          : "bg-amber-500 text-white hover:bg-amber-600",
+                      )}
+                      disabled={isSaving}
+                    >
+                      {isSaving ? "Menyimpan..." : "Kirim"}
+                    </button>
+
+                    {createMutation.isError ? (
+                      <p className={clsx("text-xs", isDark ? "text-rose-300" : "text-rose-600")}>
+                        {(createMutation.error as Error)?.message || "Gagal mengirim ucapan."}
+                      </p>
+                    ) : null}
+                  </form>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
 
       <div className="space-y-3">
         {isError ? (
@@ -430,34 +507,6 @@ export default function WeddingGreetings({
                     >
                       {formatDate(greeting.createdAt ?? greeting.$createdAt)}
                     </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide">
-                    <button
-                      type="button"
-                      onClick={() => handleEdit(greeting)}
-                      className={clsx(
-                        "rounded-full px-2 py-1",
-                        isDark
-                          ? "bg-neutral-800 text-neutral-200 hover:bg-neutral-700"
-                          : "bg-gray-100 text-gray-600 hover:bg-gray-200",
-                      )}
-                      disabled={isSaving}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(greeting.$id)}
-                      className={clsx(
-                        "rounded-full px-2 py-1",
-                        isDark
-                          ? "bg-rose-500/10 text-rose-300 hover:bg-rose-500/20"
-                          : "bg-rose-100 text-rose-600 hover:bg-rose-200",
-                      )}
-                      disabled={deleteMutation.isPending}
-                    >
-                      Hapus
-                    </button>
                   </div>
                 </div>
                 <p
