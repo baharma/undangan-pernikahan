@@ -23,7 +23,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { id: "couple", label: "Mempelai", icon: FaHeart },
-  { id: "story", label: "Kisah", icon: FaRing },
+  // { id: "story", label: "Kisah", icon: FaRing },
   { id: "gallery", label: "Galeri", icon: FaImages },
   { id: "event", label: "Acara", icon: FaCalendarAlt },
   { id: "gift", label: "Hadiah", icon: FaGift },

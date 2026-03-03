@@ -3,19 +3,19 @@ import ComponentUIGradientImage from "@/components/UI/GradientImage";
 const profiles = [
   {
     nickname: "Listia",
-    fullName: "Listia Amalia Putri",
+    fullName: "-",
     detail:
-      "Putri pertama dari pasangan Bapak Ahmad & Ibu Lina, Jakarta.",
+      "Putri dari pasangan Bapak Ketut sukrayasa & Ibu Nyoman siartini.",
     image:
-      "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/b063d7f7-mx4_2807-768x1150.jpg",
+      "/image/Screenshot 2026-03-04 at 00.41.05.png",
   },
   {
     nickname: "Dedi",
-    fullName: "Dedi Pratama Saputra",
+    fullName: "-",
     detail:
-      "Putra kedua dari pasangan Bapak Rafi & Ibu Maya, Bandung.",
+      "Putra dari pasangan Bapak I ketut Jaya Nur jaya & Ibu Nurjaya.",
     image:
-      "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/f8e8bcc2-mx4_2823-768x1150.jpg",
+      "/image/Screenshot 2026-03-04 at 00.40.52.png",
   },
 ];
 

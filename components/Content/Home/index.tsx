@@ -6,14 +6,16 @@ import ComponentUIIcon from "@/components/UI/Icon";
 import ComponentUITitle from "@/components/UI/Title";
 import { MdOutlineMail } from "react-icons/md";
 import { FaHeart, FaStar } from "react-icons/fa";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   generateRandomHearts,
   type RandomHeart,
 } from "@/utils/generateRandomHearts";
+
+const INVITED_NAME_STORAGE_KEY = "invitedName";
 
 interface Particle {
   id: number;
@@ -37,13 +39,33 @@ function generateSpiralParticles(count: number): Particle[] {
   }));
 }
 
+function formatInvitedName(rawSlug: string | string[] | undefined) {
+  const slugText = Array.isArray(rawSlug) ? rawSlug.join(" ") : rawSlug ?? "";
+  let decodedSlug = slugText;
+
+  try {
+    decodedSlug = decodeURIComponent(slugText);
+  } catch {
+    decodedSlug = slugText;
+  }
+
+  return decodedSlug
+    .replace(/[-_+]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word[0].toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
 export default function ComponentContentHome() {
   const [hearts, setHearts] = useState<RandomHeart[]>([]);
   const [mounted, setMounted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [fallingStars, setFallingStars] = useState<Particle[]>([]);
   const navigation = useRouter();
-
+  const { slug } = useParams();
+  const invitedName = useMemo(() => formatInvitedName(slug), [slug]);
   // Refs for GSAP animations
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -60,6 +82,12 @@ export default function ComponentContentHome() {
     setHearts(generateRandomHearts(8));
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!invitedName) return;
+
+    localStorage.setItem(INVITED_NAME_STORAGE_KEY, invitedName);
+  }, [invitedName]);
 
   // Handle transition animation
   const handleOpenInvitation = useCallback(() => {
@@ -255,13 +283,6 @@ export default function ComponentContentHome() {
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-1 h-1 bg-white rounded-full shadow-[0_0_100px_50px_rgba(255,255,255,0.8)] opacity-0 scale-0 light-burst" />
         </div>
-
-        {/* Center Content During Transition */}
-        {/* <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-             ... (Optional text)
-          </div>
-        </div> */}
       </div>
 
       {/* Background Image with Overlay */}
@@ -269,7 +290,7 @@ export default function ComponentContentHome() {
         <ComponentUIGradientImage
           fitVariant="cover"
           lazy
-          src="https://i.pinimg.com/736x/79/e7/e9/79e7e9f5520a7384979880271f324692.jpg"
+          src="/image/MRX09232.jpg"
         />
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
@@ -319,7 +340,7 @@ export default function ComponentContentHome() {
             <ComponentUIGradientImage
               fitVariant="cover"
               lazy
-              src="https://i.pinimg.com/736x/79/e7/e9/79e7e9f5520a7384979880271f324692.jpg"
+              src="/image/MRX09252.jpg"
             />
           </div>
         </div>
@@ -335,10 +356,25 @@ export default function ComponentContentHome() {
           </ComponentUITitle>
         </div>
 
+        {invitedName && (
+          <div className="text-center mb-6">
+            <p className="text-white/70 text-xs tracking-[0.25em] uppercase mb-2">
+              Kepada Yth.
+            </p>
+            <ComponentUITitle
+              className="text-24d lg:text-28d text-golden-amber drop-shadow-lg"
+              font="pacifico"
+              as="h2"
+            >
+              {invitedName}
+            </ComponentUITitle>
+          </div>
+        )}
+
         {/* Date */}
         <div ref={dateRef} className="text-center mb-10">
           <p className="text-white/70 text-sm tracking-wider">
-            Sabtu, 14 Februari 2026
+            Sabtu, 04 April 2026
           </p>
         </div>
 

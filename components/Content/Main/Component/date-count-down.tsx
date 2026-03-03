@@ -1,9 +1,30 @@
-const countdownItems = [
-  { label: "Days", value: "120" },
-  { label: "Hours", value: "09" },
-  { label: "Minutes", value: "32" },
-  { label: "Seconds", value: "18" },
-];
+"use client";
+
+import { useEffect, useState } from "react";
+
+const INITIAL_TIME_LEFT = {
+  days: 0,
+  hours: 0,
+  minutes: 0,
+  seconds: 0,
+};
+
+function getTimeLeft() {
+  const now = new Date();
+  const targetDate = new Date(now.getFullYear(), 3, 4, 0, 0, 0, 0); // 4 April
+  const diff = Math.max(targetDate.getTime() - now.getTime(), 0);
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((diff / (1000 * 60)) % 60);
+  const seconds = Math.floor((diff / 1000) % 60);
+
+  return { days, hours, minutes, seconds };
+}
+
+function pad(value: number) {
+  return value.toString().padStart(2, "0");
+}
 
 type DateCountDownProps = {
   theme?: "light" | "dark";
@@ -11,6 +32,28 @@ type DateCountDownProps = {
 
 export default function DateCountDown({ theme = "light" }: DateCountDownProps) {
   const isDark = theme === "dark";
+  const [timeLeft, setTimeLeft] = useState(INITIAL_TIME_LEFT);
+
+  useEffect(() => {
+    const tick = () => {
+      setTimeLeft(getTimeLeft());
+    };
+
+    const initialTimeoutId = window.setTimeout(tick, 0);
+    const intervalId = window.setInterval(tick, 1000);
+
+    return () => {
+      window.clearTimeout(initialTimeoutId);
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  const countdownItems = [
+    { label: "Days", value: String(timeLeft.days) },
+    { label: "Hours", value: pad(timeLeft.hours) },
+    { label: "Minutes", value: pad(timeLeft.minutes) },
+    { label: "Seconds", value: pad(timeLeft.seconds) },
+  ];
 
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-4">

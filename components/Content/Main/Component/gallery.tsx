@@ -2,36 +2,36 @@ import ComponentUIGradientImage from "@/components/UI/GradientImage";
 
 const galleryItems = [
   {
-    src: "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/08b3e501-mx4_3276-copy.jpg",
+    src: "/image/MRX09221.jpg",
     ratio: "portrait",
   },
   {
-    src: "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/836bc4e5-mx4_3261.jpg",
+    src: "/image/MRX09232.jpg",
     ratio: "landscape",
   },
   {
-    src: "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/2a49d380-mx4_3143.jpg",
-    ratio: "portrait",
-  },
-  {
-    src: "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/0899fb48-mx4_3022.jpg",
+    src: "/image/MRX09252.jpg",
     ratio: "landscape",
   },
   {
-    src: "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/9a4474d9-mx4_2980.jpg",
+    src: "/image/MRX09245.jpg",
+    ratio: "landscape",
+  },
+  {
+    src: "/image/MRX09417.jpg",
     ratio: "portrait",
   },
   {
-    src: "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/42c29673-mx4_2814.jpg",
+    src: "/image/MRX09433.jpg",
     ratio: "portrait",
   },
   {
-    src: "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/d6bb5714-che04350.jpg",
+    src: "/image/MRX09457.jpg",
     ratio: "portrait",
   },
   {
-    src: "https://storage.googleapis.com/stateless-swalapatra-com/2023/02/074245a6-che04229.jpg",
-    ratio: "portrait",
+    src: "/image/MRX09474.jpg",
+    ratio: "landscape",
   },
 ];
 

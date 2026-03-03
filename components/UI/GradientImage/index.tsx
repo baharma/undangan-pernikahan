@@ -29,6 +29,24 @@ interface GradientImagePropsType {
   onLightboxClose?: () => void;
 }
 
+function normalizeImageSrc(value: string | StaticImageData) {
+  if (typeof value !== "string") return value;
+
+  const trimmed = value.trim();
+  if (!trimmed) return trimmed;
+
+  if (
+    trimmed.startsWith("/") ||
+    trimmed.startsWith("data:") ||
+    trimmed.startsWith("blob:") ||
+    /^(https?:)?\/\//i.test(trimmed)
+  ) {
+    return trimmed;
+  }
+
+  return `/${trimmed.replace(/^\.?\//, "")}`;
+}
+
 const SkeletonLoader = () => (
   <div className="absolute inset-0 animate-pulse">
     <div className="w-full h-full bg-gray-200">
@@ -130,7 +148,7 @@ export default function ComponentUIGradientImage({
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [isInView, setIsInView] = useState(!lazy || priority);
-  const [currentSrc, setCurrentSrc] = useState(src);
+  const [currentSrc, setCurrentSrc] = useState(() => normalizeImageSrc(src));
   const [fallbackAttempted, setFallbackAttempted] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -157,7 +175,7 @@ export default function ComponentUIGradientImage({
 
   const handleError = useCallback(() => {
     if (fallbackSrc && !fallbackAttempted) {
-      setCurrentSrc(fallbackSrc);
+      setCurrentSrc(normalizeImageSrc(fallbackSrc));
       setFallbackAttempted(true);
       setIsLoading(true);
     } else {
@@ -170,7 +188,7 @@ export default function ComponentUIGradientImage({
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    setCurrentSrc(src);
+    setCurrentSrc(normalizeImageSrc(src));
     setHasError(false);
     setIsLoading(true);
     setFallbackAttempted(false);

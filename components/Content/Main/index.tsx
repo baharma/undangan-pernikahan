@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import ComponentUIBackgroundTransition from "@/components/UI/BackgroundTransition";
@@ -21,11 +21,12 @@ import {
   generateRandomHearts,
   type RandomHeart,
 } from "@/utils/generateRandomHearts";
+import { useParams } from "next/navigation";
 
 const MAIN_BG_IMAGES = [
-  "https://i.pinimg.com/736x/79/e7/e9/79e7e9f5520a7384979880271f324692.jpg",
-  "https://www.bcalife.co.id/storage//articles/wujudkan-pernikahan-sakral-dan-anti-boros-dengan-konsep-intimate-wedding-1718346697.png",
-  "https://images.tokopedia.net/blog-tokopedia-com/uploads/2020/02/pernikahan-adat-bali-sumber-bridestory.jpg",
+  "/image/MRX09457.jpg",
+  "/image/MRX09221.jpg",
+  "/image/MRX09245.jpg",
 ];
 
 type Sparkle = {
@@ -37,6 +38,7 @@ type Sparkle = {
 };
 
 export default function ComponentContentMain() {
+
   const [isDark, setIsDark] = useState(false);
   const theme = isDark ? "dark" : "light";
   const leftHeroRef = useRef<HTMLDivElement>(null);
@@ -375,7 +377,7 @@ export default function ComponentContentMain() {
             {/* Couple Names */}
             <div data-hero-item className="space-y-1 md:space-y-2">
               <h1 className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white leading-tight">
-                Listia & Dedi
+                Listya & Dedi
               </h1>
             </div>
 
@@ -389,20 +391,15 @@ export default function ComponentContentMain() {
             {/* Date & Time */}
             <div data-hero-item className="space-y-1 md:space-y-2">
               <p className="text-lg md:text-2xl lg:text-3xl font-light tracking-wide">
-                Saturday, December 25, 2026
+                Saturday, April 4, 2026
               </p>
-              <p className="text-base md:text-xl lg:text-2xl font-light text-amber-200">
-                09:00 AM - 13:00 PM
-              </p>
+         
             </div>
 
             {/* Venue */}
             <div data-hero-item className="pt-4 md:pt-6">
               <p className="text-base md:text-lg lg:text-xl font-light italic text-white/90">
-                Grand Ballroom, Hotel Indonesia
-              </p>
-              <p className="text-sm md:text-base text-white/70 mt-1 md:mt-2">
-                Jakarta, Indonesia
+                Jalan katrangan no 3 sumerta, denpasar timur
               </p>
             </div>
 
@@ -528,11 +525,9 @@ export default function ComponentContentMain() {
                   <span className="h-px w-10 bg-amber-300/60" />
                 </div>
                 <p className="text-sm text-white/90" data-layer>
-                  Saturday, December 25, 2026
+                  Saturday, April 4, 2026
                 </p>
-                <p className="mt-1 text-xs text-amber-200" data-layer>
-                  09:00 AM - 13:00 PM
-                </p>
+          
               </div>
             </div>
             {/* Bride & Groom Section */}
@@ -818,20 +813,15 @@ export default function ComponentContentMain() {
                         {/* Date & Time */}
                         <div className="space-y-1 md:space-y-2">
                           <p className="text-lg md:text-2xl lg:text-3xl font-light tracking-wide">
-                            Saturday, December 25, 2026
+                            Saturday, April 4, 2026
                           </p>
-                          <p className="text-base md:text-xl lg:text-2xl font-light text-amber-200">
-                            09:00 AM - 13:00 PM
-                          </p>
+                     
                         </div>
 
                         {/* Venue */}
                         <div className="pt-4 md:pt-6">
                           <p className="text-base md:text-lg lg:text-xl font-light italic text-white/90">
-                            Grand Ballroom, Hotel Indonesia
-                          </p>
-                          <p className="text-sm md:text-base text-white/70 mt-1 md:mt-2">
-                            Jakarta, Indonesia
+                            Jalan katrangan no 3 sumerta, denpasar timur
                           </p>
                         </div>
 
@@ -883,7 +873,7 @@ export default function ComponentContentMain() {
                       Lokasi Acara
                     </h3>
                     <p className={isDark ? "text-neutral-300" : "text-gray-600"}>
-                      Grand Ballroom, Hotel Indonesia Kempinski
+                      Jalan katrangan no 3 sumerta, denpasar timur
                     </p>
                     <p
                       className={clsx(
@@ -891,12 +881,12 @@ export default function ComponentContentMain() {
                         isDark ? "text-neutral-400" : "text-gray-500",
                       )}
                     >
-                      Jl. M.H. Thamrin Kav. 1, Jakarta 10310
+                      Jalan katrangan no 3 sumerta, denpasar timur
                     </p>
                   </div>
                   <div className="relative h-200 w-full">
                     <iframe
-                      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.666427009756!2d106.8196613147693!3d-6.193746995520368!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f4d2e764b12d%3A0x3d2ad6e1e0a9b4c1!2sHotel%20Indonesia%20Kempinski!5e0!3m2!1sen!2sid!4v1635000000000!5m2!1sen!2sid"
+                      src="https://www.google.com/maps?q=Jalan+katrangan+no+3+sumerta,+denpasar+timur&output=embed"
                       width="100%"
                       height="100%"
                       style={{ border: 0 }}
@@ -915,7 +905,7 @@ export default function ComponentContentMain() {
                     )}
                   >
                     <a
-                      href="https://goo.gl/maps/xyz"
+                      href="https://www.google.com/maps/search/?api=1&query=Jalan+katrangan+no+3+sumerta,+denpasar+timur"
                       target="_blank"
                       rel="noopener noreferrer"
                       className={clsx(
