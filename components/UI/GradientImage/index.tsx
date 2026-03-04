@@ -9,6 +9,11 @@ const fitVariants = {
   contain: "object-contain",
 } as const;
 
+const MAX_IMAGE_QUALITY = 55;
+const MIN_IMAGE_QUALITY = 30;
+const DEFAULT_IMAGE_SIZES =
+  "(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 1200px";
+
 type FitVariant = keyof typeof fitVariants;
 
 interface GradientImagePropsType {
@@ -27,6 +32,16 @@ interface GradientImagePropsType {
   unoptimized?: boolean;
   lightboxTrigger?: boolean;
   onLightboxClose?: () => void;
+}
+
+function shouldBypassOptimization(src: string | StaticImageData) {
+  if (typeof src !== "string") return false;
+
+  return (
+    src.startsWith("data:") ||
+    src.startsWith("blob:") ||
+    /\.svg(?:$|[?#])/i.test(src)
+  );
 }
 
 function normalizeImageSrc(value: string | StaticImageData) {
@@ -114,7 +129,9 @@ const LightboxPortal = ({
             alt={alt}
             fill
             className="object-contain"
-            quality={100}
+            quality={MAX_IMAGE_QUALITY}
+            sizes="100vw"
+            unoptimized={shouldBypassOptimization(src)}
             priority
           />
         </div>
@@ -136,7 +153,7 @@ export default function ComponentUIGradientImage({
   alt = "",
   title,
   priority = false,
-  quality = 100,
+  quality = MAX_IMAGE_QUALITY,
   sizes,
   fallbackSrc,
   lazy = true,
@@ -185,6 +202,27 @@ export default function ComponentUIGradientImage({
   }, [fallbackSrc, fallbackAttempted]);
 
   const fitClass = useMemo(() => fitVariants[fitVariant], [fitVariant]);
+  const resolvedQuality = useMemo(
+    () =>
+      Math.min(
+        Math.max(Math.round(quality), MIN_IMAGE_QUALITY),
+        MAX_IMAGE_QUALITY,
+      ),
+    [quality],
+  );
+  const resolvedSizes = sizes || DEFAULT_IMAGE_SIZES;
+  const isBypassOptimization = useMemo(
+    () => shouldBypassOptimization(currentSrc),
+    [currentSrc],
+  );
+  const effectiveUnoptimized = useMemo(
+    () => {
+      // Force optimization for normal images so payload stays small.
+      if (!isBypassOptimization && unoptimized) return false;
+      return isBypassOptimization;
+    },
+    [isBypassOptimization, unoptimized],
+  );
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
@@ -283,9 +321,9 @@ export default function ComponentUIGradientImage({
             onLoad={handleLoad}
             onError={handleError}
             priority={priority}
-            quality={quality}
-            unoptimized={unoptimized}
-            sizes={sizes}
+            quality={resolvedQuality}
+            unoptimized={effectiveUnoptimized}
+            sizes={resolvedSizes}
             loading={priority ? "eager" : lazy ? "lazy" : "eager"}
             placeholder="empty"
           />
