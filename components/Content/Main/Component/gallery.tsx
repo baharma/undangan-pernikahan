@@ -33,6 +33,22 @@ const galleryItems = [
     src: "/image/MRX09474.jpg",
     ratio: "landscape",
   },
+  {
+    src: "/image/MRX09591.jpg",
+    ratio: "portrait",
+  },
+    {
+    src: "/image/MRX09514.jpg",
+    ratio: "portrait",
+  },
+  {
+    src: "/image/MRX09363.jpg",
+    ratio: "landscape",
+  },
+  {
+    src: "/image/MRX09312.jpg",
+    ratio: "landscape",
+  },
 ];
 
 type GalleryProps = {
