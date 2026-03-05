@@ -7,16 +7,10 @@ import FloatingOrnaments from "./floating-ornaments";
 
 const gifts = [
   {
-    bank: "BCA",
-    number: "123123123",
-    name: "Putri Cantika Sari",
-    logo: "https://the.invisimple.id/wp-content/uploads/2024/10/bca.png",
-  },
-  {
-    bank: "BRI",
-    number: "321321321",
-    name: "Putra Andika Pratama",
-    logo: "https://the.invisimple.id/wp-content/uploads/2024/10/bri.png",
+    bank: "Bank Mandiri",
+    number: "1450014880492",
+    name: "I MADE DEDI SETIAWAN",
+    logo: "https://the.invisimple.id/wp-content/uploads/2024/10/mandiri.png",
   },
 ];
 
@@ -61,7 +55,7 @@ export default function GiftGiving({ theme = "light" }: GiftGivingProps) {
           silakan transfer ke rekening berikut.
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-1">
           {gifts.map((gift) => {
             const isCopied = copiedId === gift.number;
 
@@ -84,6 +78,14 @@ export default function GiftGiving({ theme = "light" }: GiftGivingProps) {
                         className="h-8 w-auto"
                         loading="lazy"
                       />
+                      <p
+                        className={clsx(
+                          "text-sm font-semibold",
+                          isDark ? "text-neutral-200" : "text-gray-700",
+                        )}
+                      >
+                        {gift.bank}
+                      </p>
                     </div>
                     <div>
                       <p

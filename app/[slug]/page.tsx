@@ -29,11 +29,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const resolvedParams = await params;
   const guestName = formatGuestNameFromSlug(resolvedParams.slug);
   const title = guestName
-    ? `Undangan untuk ${guestName} | Pawiwahan Dedi & Listya`
-    : "Pawiwahan Dedi & Listya";
+    ? `Undangan untuk ${guestName} | Pawiwahan Dedi & Listia`
+    : "Pawiwahan Dedi & Listia";
   const description = guestName
-    ? `Halo ${guestName}, kami mengundang Anda ke Pawiwahan Dedi & Listya.`
-    : "Pawiwahan Dedi & Listya";
+    ? `Halo ${guestName}, kami mengundang Anda ke Pawiwahan Dedi & Listia.`
+    : "Pawiwahan Dedi & Listia";
 
   return {
     title,
@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           width: 1200,
           height: 800,
           type: "image/jpeg",
-          alt: "Undangan Pawiwahan Dedi & Listya",
+          alt: "Undangan Pawiwahan Dedi & Listia",
         },
       ],
     },

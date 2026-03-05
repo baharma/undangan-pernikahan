@@ -19,7 +19,7 @@ const pacifico = Pacifico({
   weight: "400",
 });
 
-const DEFAULT_SITE_URL = "https://pawiwahan-dedi-listya.my.id";
+const DEFAULT_SITE_URL = "https://pawiwahan-dedi-Listia.my.id";
 const OG_IMAGE_PATH = "/og-whatsapp.jpg";
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_SITE_URL).replace(
   /\/$/,
@@ -36,29 +36,29 @@ const metadataBase = (() => {
 
 export const metadata: Metadata = {
   metadataBase,
-  title: "Pawiwahan Dedi & Listya",
-  description: "Pawiwahan Dedi & Listya",
+  title: "Pawiwahan Dedi & Listia",
+  description: "Pawiwahan Dedi & Listia",
   openGraph: {
     type: "website",
     locale: "id_ID",
     url: "/",
-    title: "Pawiwahan Dedi & Listya",
-    description: "Pawiwahan Dedi & Listya",
-    siteName: "Pawiwahan Dedi & Listya",
+    title: "Pawiwahan Dedi & Listia",
+    description: "Pawiwahan Dedi & Listia",
+    siteName: "Pawiwahan Dedi & Listia",
     images: [
       {
         url: OG_IMAGE_PATH,
         width: 1200,
         height: 800,
         type: "image/jpeg",
-        alt: "Undangan Pawiwahan Dedi & Listya",
+        alt: "Undangan Pawiwahan Dedi & Listia",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pawiwahan Dedi & Listya",
-    description: "Pawiwahan Dedi & Listya",
+    title: "Pawiwahan Dedi & Listia",
+    description: "Pawiwahan Dedi & Listia",
     images: [OG_IMAGE_PATH],
   },
 };

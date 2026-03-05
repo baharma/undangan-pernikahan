@@ -352,7 +352,7 @@ export default function ComponentContentHome() {
             font="pacifico"
             as="h1"
           >
-            Dedi & Listya
+            Dedi & Listia
           </ComponentUITitle>
         </div>
 
@@ -374,7 +374,7 @@ export default function ComponentContentHome() {
         {/* Date */}
         <div ref={dateRef} className="text-center mb-10">
           <p className="text-white/70 text-sm tracking-wider">
-            Sabtu, 04 April 2026
+            Jumat, 03 April 2026
           </p>
         </div>
 

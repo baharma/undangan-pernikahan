@@ -11,7 +11,7 @@ const INITIAL_TIME_LEFT = {
 
 function getTimeLeft() {
   const now = new Date();
-  const targetDate = new Date(now.getFullYear(), 3, 4, 0, 0, 0, 0); // 4 April
+  const targetDate = new Date(now.getFullYear(), 3, 3, 0, 0, 0, 0); // 3 April
   const diff = Math.max(targetDate.getTime() - now.getTime(), 0);
 
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));

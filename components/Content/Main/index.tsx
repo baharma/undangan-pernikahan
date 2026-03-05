@@ -377,7 +377,7 @@ export default function ComponentContentMain() {
             {/* Couple Names */}
             <div data-hero-item className="space-y-1 md:space-y-2">
               <h1 className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white leading-tight">
-                Listya & Dedi
+                Listia & Dedi
               </h1>
             </div>
 
@@ -391,7 +391,7 @@ export default function ComponentContentMain() {
             {/* Date & Time */}
             <div data-hero-item className="space-y-1 md:space-y-2">
               <p className="text-lg md:text-2xl lg:text-3xl font-light tracking-wide">
-                Saturday, April 4, 2026
+                Friday, April 3, 2026
               </p>
          
             </div>
@@ -514,7 +514,7 @@ export default function ComponentContentMain() {
                   THE WEDDING OF
                 </p>
                 <h2 className="mt-3 text-3xl font-bold" data-layer>
-                  Listya & Dedi
+                  Listia & Dedi
                 </h2>
                 <div
                   className="mx-auto my-4 flex items-center justify-center gap-3"
@@ -525,7 +525,7 @@ export default function ComponentContentMain() {
                   <span className="h-px w-10 bg-amber-300/60" />
                 </div>
                 <p className="text-sm text-white/90" data-layer>
-                  Saturday, April 4, 2026
+                  Friday, April 3, 2026
                 </p>
           
               </div>
@@ -799,7 +799,7 @@ export default function ComponentContentMain() {
                         {/* Couple Names */}
                         <div className="space-y-1 md:space-y-2">
                           <h1 className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white leading-tight">
-                            Listya & Dedi
+                            Listia & Dedi
                           </h1>
                         </div>
 
@@ -813,7 +813,7 @@ export default function ComponentContentMain() {
                         {/* Date & Time */}
                         <div className="space-y-1 md:space-y-2">
                           <p className="text-lg md:text-2xl lg:text-3xl font-light tracking-wide">
-                            Saturday, April 4, 2026
+                            Friday, April 3, 2026
                           </p>
                      
                         </div>
@@ -1016,7 +1016,7 @@ export default function ComponentContentMain() {
                 )}
                 data-layer
               >
-                Listya & Dedi
+                Listia & Dedi
               </p>
 
               <div className="absolute bottom-0 left-0 w-full">

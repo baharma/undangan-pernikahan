@@ -2,12 +2,13 @@ import ComponentUIGradientImage from "@/components/UI/GradientImage";
 
 const profiles = [
   {
-    nickname: "Listya",
+    nickname: "Listia",
     fullName: "-",
     detail:
       "Putri dari pasangan Bapak Ketut sukrayasa & Ibu Nyoman siartini.",
     image:
-      "/image/Screenshot 2026-03-04 at 00.41.05.png",
+      "/image/MRX09403.jpg",
+    imageClassName: "scale-150 object-top",
   },
   {
     nickname: "Dedi",
@@ -16,6 +17,7 @@ const profiles = [
       "Putra dari pasangan Bapak I ketut Jaya Nur jaya & Ibu Nurjaya.",
     image:
       "/image/Screenshot 2026-03-04 at 00.40.52.png",
+    imageClassName: "",
   },
 ];
 
@@ -44,6 +46,7 @@ export default function BrideAndGroom({ theme = "light" }: BrideAndGroomProps) {
                 lazy
                 src={profile.image}
                 alt={profile.fullName}
+                className={profile.imageClassName}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             </div>

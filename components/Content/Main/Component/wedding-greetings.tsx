@@ -25,9 +25,16 @@ const dividerImage =
 const INVITED_NAME_STORAGE_KEY = "invitedName";
 const ATTENDANCE_SUBMITTED_PREFIX = "weddingAttendanceSubmitted";
 const ATTENDANCE_ANSWER_PREFIX = "weddingAttendanceAnswer";
+const GIFT_MODAL_INFO = {
+  bank: "Bank Mandiri",
+  number: "1450014880492",
+  name: "I MADE DEDI SETIAWAN",
+};
 
 const getVisitorStorageId = (value: string) =>
   encodeURIComponent((value.trim() || "guest").toLowerCase());
+const normalizePersonName = (value: string) =>
+  value.trim().toLowerCase().replace(/\s+/g, " ");
 
 const formatDate = (value?: string) => {
   if (!value) return "";
@@ -88,6 +95,11 @@ export default function WeddingGreetings({
   const [isHydrated, setIsHydrated] = useState(false);
   const [hasSubmittedLocally, setHasSubmittedLocally] = useState(false);
   const [showAttendanceModal, setShowAttendanceModal] = useState(false);
+  const [attendanceModalStep, setAttendanceModalStep] = useState<"form" | "gift">(
+    "form",
+  );
+  const [shouldVerifyStoredAttendance, setShouldVerifyStoredAttendance] =
+    useState(false);
   const [submittedAttendance, setSubmittedAttendance] =
     useState<AttendanceOption | null>(null);
   const queryClient = useQueryClient();
@@ -125,6 +137,8 @@ export default function WeddingGreetings({
 
       setHasSubmittedLocally(isAlreadySubmitted);
       setShowAttendanceModal(!isAlreadySubmitted);
+      setAttendanceModalStep("form");
+      setShouldVerifyStoredAttendance(isAlreadySubmitted);
     } finally {
       setIsHydrated(true);
     }
@@ -132,12 +146,13 @@ export default function WeddingGreetings({
 
   useEffect(() => {
     if (!isHydrated || hasSubmittedLocally) return;
+    setAttendanceModalStep("form");
     setShowAttendanceModal(true);
   }, [isHydrated, hasSubmittedLocally]);
 
   useEffect(() => {
     if (!isHydrated) return;
-    if (hasSubmittedLocally || !showAttendanceModal) return;
+    if (!showAttendanceModal) return;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -178,13 +193,57 @@ export default function WeddingGreetings({
 
       queryClient.invalidateQueries({ queryKey: ["wedding-greetings"] });
       setHasSubmittedLocally(true);
-      setShowAttendanceModal(false);
+      setAttendanceModalStep("gift");
+      setShowAttendanceModal(true);
+      setShouldVerifyStoredAttendance(false);
       setSubmittedAttendance(variables.kehadiran);
       setContent("");
       setAttendance("");
       setName(isNameLocked ? prefilledName : "");
     },
   });
+
+  useEffect(() => {
+    if (!isHydrated || !shouldVerifyStoredAttendance) return;
+    if (isLoading || isError) return;
+
+    const visitorName = (prefilledName || name).trim();
+    const normalizedVisitorName = normalizePersonName(visitorName);
+    const isVisitorInGreetings = greetings.some(
+      (greeting) => normalizePersonName(greeting.name) === normalizedVisitorName,
+    );
+
+    if (visitorName && isVisitorInGreetings) {
+      setShouldVerifyStoredAttendance(false);
+      return;
+    }
+
+    const storageId = getVisitorStorageId(visitorName);
+    const submittedKey = `${ATTENDANCE_SUBMITTED_PREFIX}:${storageId}`;
+    const attendanceKey = `${ATTENDANCE_ANSWER_PREFIX}:${storageId}`;
+
+    try {
+      localStorage.removeItem(submittedKey);
+      localStorage.removeItem(attendanceKey);
+    } catch {
+      // ignore localStorage failures
+    }
+
+    setHasSubmittedLocally(false);
+    setSubmittedAttendance(null);
+    setAttendance("");
+    setAttendanceModalStep("form");
+    setShowAttendanceModal(true);
+    setShouldVerifyStoredAttendance(false);
+  }, [
+    greetings,
+    isError,
+    isHydrated,
+    isLoading,
+    name,
+    prefilledName,
+    shouldVerifyStoredAttendance,
+  ]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -211,8 +270,7 @@ export default function WeddingGreetings({
 
   const isSaving = createMutation.isPending;
   const totalLabel = isLoading ? "..." : greetings.length;
-  const shouldShowMandatoryModal =
-    isHydrated && !hasSubmittedLocally && showAttendanceModal;
+  const shouldShowMandatoryModal = isHydrated && showAttendanceModal;
 
   return (
     <div className="space-y-6">
@@ -304,112 +362,185 @@ export default function WeddingGreetings({
                     )}
                   >
                     <div>
-                      <h3 className="text-lg font-semibold">Konfirmasi Kehadiran</h3>
-                      <p className={clsx("mt-1 text-sm", isDark ? "text-neutral-400" : "text-gray-500")}>
-                        Isi sekali saja untuk mencegah spam pada buku tamu.
+                      <h3 className="text-lg font-semibold">
+                        {attendanceModalStep === "form"
+                          ? "Konfirmasi Kehadiran"
+                          : "Informasi Transfer"}
+                      </h3>
+                      <p
+                        className={clsx(
+                          "mt-1 text-sm",
+                          isDark ? "text-neutral-400" : "text-gray-500",
+                        )}
+                      >
+                        {attendanceModalStep === "form"
+                          ? "Isi sekali saja untuk mencegah spam pada buku tamu."
+                          : "Terima kasih sudah mengisi konfirmasi kehadiran."}
                       </p>
                     </div>
                   </div>
 
-                  <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-5">
-                    <div>
-                      <label
+                  {attendanceModalStep === "form" ? (
+                    <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-5">
+                      <div>
+                        <label
+                          className={clsx(
+                            "block text-sm font-medium",
+                            isDark ? "text-neutral-200" : "text-gray-700",
+                          )}
+                        >
+                          Nama
+                        </label>
+                        <input
+                          type="text"
+                          value={name}
+                          onChange={(event) => setName(event.target.value)}
+                          className={clsx(
+                            "mt-2 w-full rounded-lg border px-4 py-2.5 focus:border-amber-400 focus:outline-none",
+                            isDark
+                              ? "border-neutral-700 bg-neutral-900 text-neutral-100 placeholder:text-neutral-500"
+                              : "border-gray-300 text-gray-700 placeholder:text-gray-400",
+                          )}
+                          disabled={isSaving}
+                          readOnly={isNameLocked}
+                          maxLength={100}
+                          placeholder="Nama Anda"
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          className={clsx(
+                            "block text-sm font-medium",
+                            isDark ? "text-neutral-200" : "text-gray-700",
+                          )}
+                        >
+                          Ucapan & Doa
+                        </label>
+                        <textarea
+                          value={content}
+                          onChange={(event) => setContent(event.target.value)}
+                          className={clsx(
+                            "mt-2 w-full rounded-lg border px-4 py-2.5 focus:border-amber-400 focus:outline-none",
+                            isDark
+                              ? "border-neutral-700 bg-neutral-900 text-neutral-100 placeholder:text-neutral-500"
+                              : "border-gray-300 text-gray-700 placeholder:text-gray-400",
+                          )}
+                          disabled={isSaving}
+                          maxLength={102}
+                          rows={3}
+                          placeholder="Tuliskan ucapan terbaik Anda"
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          className={clsx(
+                            "block text-sm font-medium",
+                            isDark ? "text-neutral-200" : "text-gray-700",
+                          )}
+                        >
+                          Konfirmasi Kehadiran
+                        </label>
+                        <select
+                          value={attendance}
+                          onChange={(event) => setAttendance(event.target.value)}
+                          className={clsx(
+                            "mt-2 w-full rounded-lg border px-4 py-2.5 focus:border-amber-400 focus:outline-none",
+                            isDark
+                              ? "border-neutral-700 bg-neutral-900 text-neutral-100"
+                              : "border-gray-300 text-gray-700",
+                          )}
+                          disabled={isSaving}
+                        >
+                          <option value="" disabled>
+                            Pilih konfirmasi kehadiran
+                          </option>
+                          <option value="Hadir">Hadir</option>
+                          <option value="Tidak hadir">Tidak hadir</option>
+                        </select>
+                      </div>
+
+                      <button
+                        type="submit"
                         className={clsx(
-                          "block text-sm font-medium",
-                          isDark ? "text-neutral-200" : "text-gray-700",
-                        )}
-                      >
-                        Nama
-                      </label>
-                      <input
-                        type="text"
-                        value={name}
-                        onChange={(event) => setName(event.target.value)}
-                        className={clsx(
-                          "mt-2 w-full rounded-lg border px-4 py-2.5 focus:border-amber-400 focus:outline-none",
+                          "w-full rounded-lg px-5 py-2.5 text-sm font-medium",
                           isDark
-                            ? "border-neutral-700 bg-neutral-900 text-neutral-100 placeholder:text-neutral-500"
-                            : "border-gray-300 text-gray-700 placeholder:text-gray-400",
+                            ? "bg-amber-400 text-neutral-900 hover:bg-amber-300"
+                            : "bg-amber-500 text-white hover:bg-amber-600",
                         )}
                         disabled={isSaving}
-                        readOnly={isNameLocked}
-                        maxLength={100}
-                        placeholder="Nama Anda"
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        className={clsx(
-                          "block text-sm font-medium",
-                          isDark ? "text-neutral-200" : "text-gray-700",
-                        )}
                       >
-                        Ucapan & Doa
-                      </label>
-                      <textarea
-                        value={content}
-                        onChange={(event) => setContent(event.target.value)}
+                        {isSaving ? "Menyimpan..." : "Kirim"}
+                      </button>
+
+                      {createMutation.isError ? (
+                        <p className={clsx("text-xs", isDark ? "text-rose-300" : "text-rose-600")}>
+                          {(createMutation.error as Error)?.message || "Gagal mengirim ucapan."}
+                        </p>
+                      ) : null}
+                    </form>
+                  ) : (
+                    <div className="space-y-4 p-4 md:p-5">
+                      <div
                         className={clsx(
-                          "mt-2 w-full rounded-lg border px-4 py-2.5 focus:border-amber-400 focus:outline-none",
+                          "rounded-xl border p-4",
                           isDark
-                            ? "border-neutral-700 bg-neutral-900 text-neutral-100 placeholder:text-neutral-500"
-                            : "border-gray-300 text-gray-700 placeholder:text-gray-400",
-                        )}
-                        disabled={isSaving}
-                        maxLength={102}
-                        rows={3}
-                        placeholder="Tuliskan ucapan terbaik Anda"
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        className={clsx(
-                          "block text-sm font-medium",
-                          isDark ? "text-neutral-200" : "text-gray-700",
+                            ? "border-neutral-700 bg-neutral-900/70"
+                            : "border-amber-100 bg-amber-50/60",
                         )}
                       >
-                        Konfirmasi Kehadiran
-                      </label>
-                      <select
-                        value={attendance}
-                        onChange={(event) => setAttendance(event.target.value)}
+                        <p
+                          className={clsx(
+                            "text-xs uppercase tracking-[0.22em]",
+                            isDark ? "text-neutral-400" : "text-gray-500",
+                          )}
+                        >
+                          {GIFT_MODAL_INFO.bank}
+                        </p>
+                        <p
+                          className={clsx(
+                            "mt-2 text-lg font-semibold tracking-wider",
+                            isDark ? "text-neutral-100" : "text-gray-800",
+                          )}
+                        >
+                          {GIFT_MODAL_INFO.number}
+                        </p>
+                        <p
+                          className={clsx(
+                            "mt-2 text-sm",
+                            isDark ? "text-neutral-300" : "text-gray-600",
+                          )}
+                        >
+                          a.n. {GIFT_MODAL_INFO.name}
+                        </p>
+                      </div>
+
+                      {submittedAttendance ? (
+                        <p
+                          className={clsx(
+                            "text-xs",
+                            isDark ? "text-neutral-400" : "text-gray-500",
+                          )}
+                        >
+                          Konfirmasi Anda: {submittedAttendance}.
+                        </p>
+                      ) : null}
+
+                      <button
+                        type="button"
+                        onClick={() => setShowAttendanceModal(false)}
                         className={clsx(
-                          "mt-2 w-full rounded-lg border px-4 py-2.5 focus:border-amber-400 focus:outline-none",
+                          "w-full rounded-lg border px-5 py-2.5 text-sm font-medium",
                           isDark
-                            ? "border-neutral-700 bg-neutral-900 text-neutral-100"
-                            : "border-gray-300 text-gray-700",
+                            ? "border-neutral-700 text-neutral-200 hover:bg-neutral-800"
+                            : "border-gray-300 text-gray-700 hover:bg-gray-50",
                         )}
-                        disabled={isSaving}
                       >
-                        <option value="" disabled>
-                          Pilih konfirmasi kehadiran
-                        </option>
-                        <option value="Hadir">Hadir</option>
-                        <option value="Tidak hadir">Tidak hadir</option>
-                      </select>
+                        Skip
+                      </button>
                     </div>
-
-                    <button
-                      type="submit"
-                      className={clsx(
-                        "w-full rounded-lg px-5 py-2.5 text-sm font-medium",
-                        isDark
-                          ? "bg-amber-400 text-neutral-900 hover:bg-amber-300"
-                          : "bg-amber-500 text-white hover:bg-amber-600",
-                      )}
-                      disabled={isSaving}
-                    >
-                      {isSaving ? "Menyimpan..." : "Kirim"}
-                    </button>
-
-                    {createMutation.isError ? (
-                      <p className={clsx("text-xs", isDark ? "text-rose-300" : "text-rose-600")}>
-                        {(createMutation.error as Error)?.message || "Gagal mengirim ucapan."}
-                      </p>
-                    ) : null}
-                  </form>
+                  )}
                 </div>
               </div>
             </div>,
