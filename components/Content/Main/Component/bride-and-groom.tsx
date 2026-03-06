@@ -14,7 +14,7 @@ const profiles = [
     nickname: "Dedi",
     fullName: "-",
     detail:
-      "Putra dari pasangan Bapak I ketut Jaya Nur jaya & Ibu Nurjaya.",
+      "Putra dari pasangan Bapak I ketut Jaya & Ibu Nurjaya.",
     image:
       "/image/Screenshot 2026-03-04 at 00.40.52.png",
     imageClassName: "",
