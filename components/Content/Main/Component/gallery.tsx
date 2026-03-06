@@ -39,7 +39,7 @@ const galleryItems = [
     ratio: "landscape",
   },
   {
-    src: "/image/MRX09591.jpg",
+    src: "/image/MRX09577.jpg",
     ratio: "portrait",
   },
   {
