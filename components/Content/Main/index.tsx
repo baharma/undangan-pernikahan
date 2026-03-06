@@ -377,7 +377,7 @@ export default function ComponentContentMain() {
             {/* Couple Names */}
             <div data-hero-item className="space-y-1 md:space-y-2">
               <h1 className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white leading-tight">
-                Listia & Dedi
+                Dedi & Listia 
               </h1>
             </div>
 
@@ -514,7 +514,7 @@ export default function ComponentContentMain() {
                   THE WEDDING OF
                 </p>
                 <h2 className="mt-3 text-3xl font-bold" data-layer>
-                  Listia & Dedi
+                Dedi  & Listia 
                 </h2>
                 <div
                   className="mx-auto my-4 flex items-center justify-center gap-3"
@@ -799,7 +799,7 @@ export default function ComponentContentMain() {
                         {/* Couple Names */}
                         <div className="space-y-1 md:space-y-2">
                           <h1 className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white leading-tight">
-                            Listia & Dedi
+                             Dedi &  Listia
                           </h1>
                         </div>
 
@@ -1016,7 +1016,7 @@ export default function ComponentContentMain() {
                 )}
                 data-layer
               >
-                Listia & Dedi
+                 Dedi & Listia
               </p>
 
               <div className="absolute bottom-0 left-0 w-full">
