@@ -65,6 +65,11 @@ type PanOffset = {
   y: number;
 };
 
+type PointerPoint = {
+  x: number;
+  y: number;
+};
+
 export default function Gallery({ theme = "light" }: GalleryProps) {
   const isDark = theme === "dark";
   const totalItems = galleryItems.length;
@@ -77,6 +82,7 @@ export default function Gallery({ theme = "light" }: GalleryProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [mounted, setMounted] = useState(false);
   const imageViewportRef = useRef<HTMLDivElement>(null);
+  const activePointersRef = useRef<Map<number, PointerPoint>>(new Map());
   const dragStartRef = useRef<{
     pointerId: number;
     startX: number;
@@ -84,6 +90,16 @@ export default function Gallery({ theme = "light" }: GalleryProps) {
     originX: number;
     originY: number;
   } | null>(null);
+  const pinchStartRef = useRef<{ distance: number; zoom: number } | null>(null);
+
+  const getPointerDistance = useCallback((first: PointerPoint, second: PointerPoint) => {
+    return Math.hypot(first.x - second.x, first.y - second.y);
+  }, []);
+
+  const clampZoom = useCallback(
+    (zoom: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom)),
+    [MAX_ZOOM, MIN_ZOOM],
+  );
 
   const clampPanOffset = useCallback((x: number, y: number, zoom: number) => {
     if (zoom <= 1 || !imageViewportRef.current) return { x: 0, y: 0 };
@@ -99,43 +115,47 @@ export default function Gallery({ theme = "light" }: GalleryProps) {
     };
   }, []);
 
+  const resetGestureState = useCallback(() => {
+    setIsDragging(false);
+    dragStartRef.current = null;
+    pinchStartRef.current = null;
+    activePointersRef.current.clear();
+  }, []);
+
   const closeModal = useCallback(() => {
     setActiveIndex(null);
     setZoomLevel(1);
     setPanOffset({ x: 0, y: 0 });
-    setIsDragging(false);
-    dragStartRef.current = null;
-  }, []);
+    resetGestureState();
+  }, [resetGestureState]);
 
   const showPrev = useCallback(() => {
     setZoomLevel(1);
     setPanOffset({ x: 0, y: 0 });
-    setIsDragging(false);
-    dragStartRef.current = null;
+    resetGestureState();
     setActiveIndex((current) => {
       if (current === null) return current;
       return (current - 1 + totalItems) % totalItems;
     });
-  }, [totalItems]);
+  }, [resetGestureState, totalItems]);
 
   const showNext = useCallback(() => {
     setZoomLevel(1);
     setPanOffset({ x: 0, y: 0 });
-    setIsDragging(false);
-    dragStartRef.current = null;
+    resetGestureState();
     setActiveIndex((current) => {
       if (current === null) return current;
       return (current + 1) % totalItems;
     });
-  }, [totalItems]);
+  }, [resetGestureState, totalItems]);
 
   const zoomIn = useCallback(() => {
-    setZoomLevel((current) => Math.min(MAX_ZOOM, current + ZOOM_STEP));
-  }, [MAX_ZOOM, ZOOM_STEP]);
+    setZoomLevel((current) => clampZoom(current + ZOOM_STEP));
+  }, [ZOOM_STEP, clampZoom]);
 
   const zoomOut = useCallback(() => {
-    setZoomLevel((current) => Math.max(MIN_ZOOM, current - ZOOM_STEP));
-  }, [MIN_ZOOM, ZOOM_STEP]);
+    setZoomLevel((current) => clampZoom(current - ZOOM_STEP));
+  }, [ZOOM_STEP, clampZoom]);
 
   const resetZoom = useCallback(() => {
     setZoomLevel(1);
@@ -306,9 +326,28 @@ export default function Gallery({ theme = "light" }: GalleryProps) {
                   setZoomLevel((current) => (current === 1 ? 2 : 1));
                 }}
                 onPointerDown={(event) => {
-                  if (zoomLevel <= 1) return;
-                  event.preventDefault();
                   event.stopPropagation();
+                  event.preventDefault();
+                  activePointersRef.current.set(event.pointerId, {
+                    x: event.clientX,
+                    y: event.clientY,
+                  });
+                  event.currentTarget.setPointerCapture(event.pointerId);
+
+                  if (activePointersRef.current.size >= 2) {
+                    const points = Array.from(activePointersRef.current.values());
+                    const initialDistance = getPointerDistance(points[0], points[1]);
+                    pinchStartRef.current = {
+                      distance: initialDistance || 1,
+                      zoom: zoomLevel,
+                    };
+                    dragStartRef.current = null;
+                    setIsDragging(false);
+                    return;
+                  }
+
+                  if (zoomLevel <= 1) return;
+
                   dragStartRef.current = {
                     pointerId: event.pointerId,
                     startX: event.clientX,
@@ -317,9 +356,33 @@ export default function Gallery({ theme = "light" }: GalleryProps) {
                     originY: panOffset.y,
                   };
                   setIsDragging(true);
-                  event.currentTarget.setPointerCapture(event.pointerId);
                 }}
                 onPointerMove={(event) => {
+                  if (!activePointersRef.current.has(event.pointerId)) return;
+
+                  activePointersRef.current.set(event.pointerId, {
+                    x: event.clientX,
+                    y: event.clientY,
+                  });
+
+                  if (activePointersRef.current.size >= 2) {
+                    const points = Array.from(activePointersRef.current.values());
+                    const distance = getPointerDistance(points[0], points[1]);
+                    if (!pinchStartRef.current) {
+                      pinchStartRef.current = {
+                        distance: distance || 1,
+                        zoom: zoomLevel,
+                      };
+                    }
+
+                    const scaleFactor = distance / pinchStartRef.current.distance;
+                    const nextZoom = clampZoom(pinchStartRef.current.zoom * scaleFactor);
+                    setZoomLevel(nextZoom);
+                    setIsDragging(false);
+                    dragStartRef.current = null;
+                    return;
+                  }
+
                   if (!dragStartRef.current || zoomLevel <= 1) return;
                   if (dragStartRef.current.pointerId !== event.pointerId) return;
 
@@ -334,25 +397,53 @@ export default function Gallery({ theme = "light" }: GalleryProps) {
                   );
                 }}
                 onPointerUp={(event) => {
-                  if (!dragStartRef.current) return;
-                  if (dragStartRef.current.pointerId !== event.pointerId) return;
-                  dragStartRef.current = null;
-                  setIsDragging(false);
+                  event.stopPropagation();
+                  activePointersRef.current.delete(event.pointerId);
                   if (event.currentTarget.hasPointerCapture(event.pointerId)) {
                     event.currentTarget.releasePointerCapture(event.pointerId);
+                  }
+
+                  if (dragStartRef.current?.pointerId === event.pointerId) {
+                    dragStartRef.current = null;
+                    setIsDragging(false);
+                  }
+
+                  if (activePointersRef.current.size < 2) {
+                    pinchStartRef.current = null;
+                  }
+
+                  if (activePointersRef.current.size === 1 && zoomLevel > 1) {
+                    const [pointerId, point] = Array.from(
+                      activePointersRef.current.entries(),
+                    )[0];
+                    dragStartRef.current = {
+                      pointerId,
+                      startX: point.x,
+                      startY: point.y,
+                      originX: panOffset.x,
+                      originY: panOffset.y,
+                    };
+                    setIsDragging(true);
                   }
                 }}
                 onPointerCancel={(event) => {
-                  if (!dragStartRef.current) return;
-                  if (dragStartRef.current.pointerId !== event.pointerId) return;
-                  dragStartRef.current = null;
-                  setIsDragging(false);
+                  event.stopPropagation();
+                  activePointersRef.current.delete(event.pointerId);
                   if (event.currentTarget.hasPointerCapture(event.pointerId)) {
                     event.currentTarget.releasePointerCapture(event.pointerId);
                   }
+
+                  if (dragStartRef.current?.pointerId === event.pointerId) {
+                    dragStartRef.current = null;
+                    setIsDragging(false);
+                  }
+
+                  if (activePointersRef.current.size < 2) {
+                    pinchStartRef.current = null;
+                  }
                 }}
                 style={{
-                  touchAction: zoomLevel > 1 ? "none" : "pan-y",
+                  touchAction: "none",
                   cursor: zoomLevel > 1 ? (isDragging ? "grabbing" : "grab") : "default",
                 }}
               >
