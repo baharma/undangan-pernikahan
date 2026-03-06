@@ -2,15 +2,6 @@ import ComponentUIGradientImage from "@/components/UI/GradientImage";
 
 const profiles = [
   {
-    nickname: "Listia",
-    fullName: "-",
-    detail:
-      "Putri dari pasangan Bapak Ketut sukrayasa & Ibu Nyoman siartini.",
-    image:
-      "/image/MRX09403.jpg",
-    imageClassName: "scale-150 object-top",
-  },
-  {
     nickname: "Dedi",
     fullName: "-",
     detail:
@@ -19,6 +10,16 @@ const profiles = [
       "/image/Screenshot 2026-03-04 at 00.40.52.png",
     imageClassName: "",
   },
+  {
+    nickname: "Listia",
+    fullName: "-",
+    detail:
+      "Putri dari pasangan Bapak Ketut sukrayasa & Ibu Nyoman siartini.",
+    image:
+      "/image/MRX09403.jpg",
+    imageClassName: "scale-150 object-top",
+  },
+
 ];
 
 type BrideAndGroomProps = {
