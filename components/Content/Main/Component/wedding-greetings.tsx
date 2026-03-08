@@ -446,8 +446,8 @@ export default function WeddingGreetings({
                   ? "border-neutral-700 bg-neutral-900 text-neutral-100 placeholder:text-neutral-500"
                   : "border-gray-300 text-gray-700 placeholder:text-gray-400",
               )}
-              disabled={isSaving}
-              readOnly={isNameLocked}
+              // disabled={isSaving}
+              // readOnly={isNameLocked}
               maxLength={100}
               placeholder="Nama Anda"
             />

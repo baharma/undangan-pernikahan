@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Pacifico } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
+import { METADATA_BASE, OG_IMAGE_URL, SITE_URL } from "@/lib/seo-metadata";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,35 +20,23 @@ const pacifico = Pacifico({
   weight: "400",
 });
 
-const DEFAULT_SITE_URL = "https://pawiwahan-dedi-Listia.my.id";
-const OG_IMAGE_PATH = "/og-whatsapp.jpg";
-const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_SITE_URL).replace(
-  /\/$/,
-  "",
-);
-
-const metadataBase = (() => {
-  try {
-    return new URL(siteUrl);
-  } catch {
-    return new URL("http://localhost:3000");
-  }
-})();
-
 export const metadata: Metadata = {
-  metadataBase,
+  metadataBase: METADATA_BASE,
+  alternates: {
+    canonical: SITE_URL,
+  },
   title: "Pawiwahan Dedi & Listia",
   description: "Pawiwahan Dedi & Listia",
   openGraph: {
     type: "website",
     locale: "id_ID",
-    url: "/",
+    url: SITE_URL,
     title: "Pawiwahan Dedi & Listia",
     description: "Pawiwahan Dedi & Listia",
     siteName: "Pawiwahan Dedi & Listia",
     images: [
       {
-        url: OG_IMAGE_PATH,
+        url: OG_IMAGE_URL,
         width: 1200,
         height: 800,
         type: "image/jpeg",
@@ -59,7 +48,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Pawiwahan Dedi & Listia",
     description: "Pawiwahan Dedi & Listia",
-    images: [OG_IMAGE_PATH],
+    images: [OG_IMAGE_URL],
   },
 };
 
