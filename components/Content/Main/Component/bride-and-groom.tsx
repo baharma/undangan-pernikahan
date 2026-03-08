@@ -7,8 +7,8 @@ const profiles = [
     detail:
       "Putra dari pasangan Bapak I ketut Jaya & Ibu Nurjaya.",
     image:
-      "/image/Screenshot 2026-03-04 at 00.40.52.png",
-    imageClassName: "",
+      "/image/MRX09433.jpg",
+    imageClassName: "scale-250 object-top",
   },
   {
     nickname: "Listia",

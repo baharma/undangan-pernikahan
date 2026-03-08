@@ -412,7 +412,7 @@ export default function ComponentContentHome() {
                 font="pacifico"
                 as="span"
               >
-                Open Invitation
+                Buka Undangan
               </ComponentUITitle>
             </div>
           </ComponentUIButton>

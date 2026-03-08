@@ -2,7 +2,6 @@
 
 import clsx from "clsx";
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Models } from "appwrite";
 import ComponentUIGradientImage from "@/components/UI/GradientImage";
@@ -25,11 +24,6 @@ const dividerImage =
 const INVITED_NAME_STORAGE_KEY = "invitedName";
 const ATTENDANCE_SUBMITTED_PREFIX = "weddingAttendanceSubmitted";
 const ATTENDANCE_ANSWER_PREFIX = "weddingAttendanceAnswer";
-const GIFT_MODAL_INFO = {
-  bank: "Bank Mandiri",
-  number: "1450014880492",
-  name: "I MADE DEDI SETIAWAN",
-};
 
 const getVisitorStorageId = (value: string) =>
   encodeURIComponent((value.trim() || "guest").toLowerCase());
@@ -94,10 +88,6 @@ export default function WeddingGreetings({
   const [isNameLocked, setIsNameLocked] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [hasSubmittedLocally, setHasSubmittedLocally] = useState(false);
-  const [showAttendanceModal, setShowAttendanceModal] = useState(false);
-  const [attendanceModalStep, setAttendanceModalStep] = useState<"form" | "gift">(
-    "form",
-  );
   const [shouldVerifyStoredAttendance, setShouldVerifyStoredAttendance] =
     useState(false);
   const [submittedAttendance, setSubmittedAttendance] =
@@ -136,31 +126,11 @@ export default function WeddingGreetings({
       }
 
       setHasSubmittedLocally(isAlreadySubmitted);
-      setShowAttendanceModal(!isAlreadySubmitted);
-      setAttendanceModalStep("form");
       setShouldVerifyStoredAttendance(isAlreadySubmitted);
     } finally {
       setIsHydrated(true);
     }
   }, []);
-
-  useEffect(() => {
-    if (!isHydrated || hasSubmittedLocally) return;
-    setAttendanceModalStep("form");
-    setShowAttendanceModal(true);
-  }, [isHydrated, hasSubmittedLocally]);
-
-  useEffect(() => {
-    if (!isHydrated) return;
-    if (!showAttendanceModal) return;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isHydrated, hasSubmittedLocally, showAttendanceModal]);
 
   const createMutation = useMutation({
     mutationFn: async (payload: {
@@ -193,8 +163,6 @@ export default function WeddingGreetings({
 
       queryClient.invalidateQueries({ queryKey: ["wedding-greetings"] });
       setHasSubmittedLocally(true);
-      setAttendanceModalStep("gift");
-      setShowAttendanceModal(true);
       setShouldVerifyStoredAttendance(false);
       setSubmittedAttendance(variables.kehadiran);
       setContent("");
@@ -232,8 +200,6 @@ export default function WeddingGreetings({
     setHasSubmittedLocally(false);
     setSubmittedAttendance(null);
     setAttendance("");
-    setAttendanceModalStep("form");
-    setShowAttendanceModal(true);
     setShouldVerifyStoredAttendance(false);
   }, [
     greetings,
@@ -247,7 +213,6 @@ export default function WeddingGreetings({
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (hasSubmittedLocally) return;
 
     const trimmedName = name.trim();
     const trimmedContent = content.trim();
@@ -270,7 +235,6 @@ export default function WeddingGreetings({
 
   const isSaving = createMutation.isPending;
   const totalLabel = isLoading ? "..." : greetings.length;
-  const shouldShowMandatoryModal = isHydrated && showAttendanceModal;
 
   return (
     <div className="space-y-6">
@@ -337,216 +301,9 @@ export default function WeddingGreetings({
               : "border-gray-100 bg-white text-gray-600",
           )}
         >
-          <p>Silakan isi kehadiran sekali. Form wajib diisi sebelum lanjut.</p>
+          <p>Isi buku tamu jika berkenan. Tidak wajib saat pertama membuka undangan.</p>
         </div>
       )}
-
-      {shouldShowMandatoryModal
-        ? createPortal(
-            <div className="fixed inset-0 z-[99999] flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black/60 p-4">
-              <div className="relative w-full max-w-md max-h-full">
-                <div
-                  role="dialog"
-                  aria-modal="true"
-                  className={clsx(
-                    "relative rounded-lg border shadow-xl",
-                    isDark
-                      ? "border-neutral-800 bg-neutral-900 text-neutral-100"
-                      : "border-gray-200 bg-white text-gray-800",
-                  )}
-                >
-                  <div
-                    className={clsx(
-                      "flex items-start justify-between rounded-t border-b p-4 md:p-5",
-                      isDark ? "border-neutral-800" : "border-gray-200",
-                    )}
-                  >
-                    <div>
-                      <h3 className="text-lg font-semibold">
-                        {attendanceModalStep === "form"
-                          ? "Konfirmasi Kehadiran"
-                          : "Informasi Transfer"}
-                      </h3>
-                      <p
-                        className={clsx(
-                          "mt-1 text-sm",
-                          isDark ? "text-neutral-400" : "text-gray-500",
-                        )}
-                      >
-                        {attendanceModalStep === "form"
-                          ? "Isi sekali saja untuk mencegah spam pada buku tamu."
-                          : "Terima kasih sudah mengisi konfirmasi kehadiran."}
-                      </p>
-                    </div>
-                  </div>
-
-                  {attendanceModalStep === "form" ? (
-                    <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-5">
-                      <div>
-                        <label
-                          className={clsx(
-                            "block text-sm font-medium",
-                            isDark ? "text-neutral-200" : "text-gray-700",
-                          )}
-                        >
-                          Nama
-                        </label>
-                        <input
-                          type="text"
-                          value={name}
-                          onChange={(event) => setName(event.target.value)}
-                          className={clsx(
-                            "mt-2 w-full rounded-lg border px-4 py-2.5 focus:border-amber-400 focus:outline-none",
-                            isDark
-                              ? "border-neutral-700 bg-neutral-900 text-neutral-100 placeholder:text-neutral-500"
-                              : "border-gray-300 text-gray-700 placeholder:text-gray-400",
-                          )}
-                          disabled={isSaving}
-                          readOnly={isNameLocked}
-                          maxLength={100}
-                          placeholder="Nama Anda"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          className={clsx(
-                            "block text-sm font-medium",
-                            isDark ? "text-neutral-200" : "text-gray-700",
-                          )}
-                        >
-                          Ucapan & Doa
-                        </label>
-                        <textarea
-                          value={content}
-                          onChange={(event) => setContent(event.target.value)}
-                          className={clsx(
-                            "mt-2 w-full rounded-lg border px-4 py-2.5 focus:border-amber-400 focus:outline-none",
-                            isDark
-                              ? "border-neutral-700 bg-neutral-900 text-neutral-100 placeholder:text-neutral-500"
-                              : "border-gray-300 text-gray-700 placeholder:text-gray-400",
-                          )}
-                          disabled={isSaving}
-                          maxLength={102}
-                          rows={3}
-                          placeholder="Tuliskan ucapan terbaik Anda"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          className={clsx(
-                            "block text-sm font-medium",
-                            isDark ? "text-neutral-200" : "text-gray-700",
-                          )}
-                        >
-                          Konfirmasi Kehadiran
-                        </label>
-                        <select
-                          value={attendance}
-                          onChange={(event) => setAttendance(event.target.value)}
-                          className={clsx(
-                            "mt-2 w-full rounded-lg border px-4 py-2.5 focus:border-amber-400 focus:outline-none",
-                            isDark
-                              ? "border-neutral-700 bg-neutral-900 text-neutral-100"
-                              : "border-gray-300 text-gray-700",
-                          )}
-                          disabled={isSaving}
-                        >
-                          <option value="" disabled>
-                            Pilih konfirmasi kehadiran
-                          </option>
-                          <option value="Hadir">Hadir</option>
-                          <option value="Tidak hadir">Tidak hadir</option>
-                        </select>
-                      </div>
-
-                      <button
-                        type="submit"
-                        className={clsx(
-                          "w-full rounded-lg px-5 py-2.5 text-sm font-medium",
-                          isDark
-                            ? "bg-amber-400 text-neutral-900 hover:bg-amber-300"
-                            : "bg-amber-500 text-white hover:bg-amber-600",
-                        )}
-                        disabled={isSaving}
-                      >
-                        {isSaving ? "Menyimpan..." : "Kirim"}
-                      </button>
-
-                      {createMutation.isError ? (
-                        <p className={clsx("text-xs", isDark ? "text-rose-300" : "text-rose-600")}>
-                          {(createMutation.error as Error)?.message || "Gagal mengirim ucapan."}
-                        </p>
-                      ) : null}
-                    </form>
-                  ) : (
-                    <div className="space-y-4 p-4 md:p-5">
-                      <div
-                        className={clsx(
-                          "rounded-xl border p-4",
-                          isDark
-                            ? "border-neutral-700 bg-neutral-900/70"
-                            : "border-amber-100 bg-amber-50/60",
-                        )}
-                      >
-                        <p
-                          className={clsx(
-                            "text-xs uppercase tracking-[0.22em]",
-                            isDark ? "text-neutral-400" : "text-gray-500",
-                          )}
-                        >
-                          {GIFT_MODAL_INFO.bank}
-                        </p>
-                        <p
-                          className={clsx(
-                            "mt-2 text-lg font-semibold tracking-wider",
-                            isDark ? "text-neutral-100" : "text-gray-800",
-                          )}
-                        >
-                          {GIFT_MODAL_INFO.number}
-                        </p>
-                        <p
-                          className={clsx(
-                            "mt-2 text-sm",
-                            isDark ? "text-neutral-300" : "text-gray-600",
-                          )}
-                        >
-                          a.n. {GIFT_MODAL_INFO.name}
-                        </p>
-                      </div>
-
-                      {submittedAttendance ? (
-                        <p
-                          className={clsx(
-                            "text-xs",
-                            isDark ? "text-neutral-400" : "text-gray-500",
-                          )}
-                        >
-                          Konfirmasi Anda: {submittedAttendance}.
-                        </p>
-                      ) : null}
-
-                      <button
-                        type="button"
-                        onClick={() => setShowAttendanceModal(false)}
-                        className={clsx(
-                          "w-full rounded-lg border px-5 py-2.5 text-sm font-medium",
-                          isDark
-                            ? "border-neutral-700 text-neutral-200 hover:bg-neutral-800"
-                            : "border-gray-300 text-gray-700 hover:bg-gray-50",
-                        )}
-                      >
-                        Skip
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>,
-            document.body,
-          )
-        : null}
 
       <div className="space-y-3">
         {isError ? (
@@ -652,6 +409,122 @@ export default function WeddingGreetings({
             </div>
           ))
         )}
+      </div>
+
+      <div
+        className={clsx(
+          "rounded-2xl border p-5",
+          isDark
+            ? "border-neutral-800 bg-neutral-900/80 text-neutral-100"
+            : "border-gray-100 bg-white text-gray-800",
+        )}
+      >
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold">Konfirmasi Kehadiran</h3>
+          <p className={clsx("mt-1 text-sm", isDark ? "text-neutral-400" : "text-gray-500")}>
+            Form ini opsional dan sekarang bisa diisi kapan saja.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label
+              className={clsx(
+                "block text-sm font-medium",
+                isDark ? "text-neutral-200" : "text-gray-700",
+              )}
+            >
+              Nama
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              className={clsx(
+                "mt-2 w-full rounded-lg border px-4 py-2.5 focus:border-amber-400 focus:outline-none",
+                isDark
+                  ? "border-neutral-700 bg-neutral-900 text-neutral-100 placeholder:text-neutral-500"
+                  : "border-gray-300 text-gray-700 placeholder:text-gray-400",
+              )}
+              disabled={isSaving}
+              readOnly={isNameLocked}
+              maxLength={100}
+              placeholder="Nama Anda"
+            />
+          </div>
+
+          <div>
+            <label
+              className={clsx(
+                "block text-sm font-medium",
+                isDark ? "text-neutral-200" : "text-gray-700",
+              )}
+            >
+              Ucapan & Doa
+            </label>
+            <textarea
+              value={content}
+              onChange={(event) => setContent(event.target.value)}
+              className={clsx(
+                "mt-2 w-full rounded-lg border px-4 py-2.5 focus:border-amber-400 focus:outline-none",
+                isDark
+                  ? "border-neutral-700 bg-neutral-900 text-neutral-100 placeholder:text-neutral-500"
+                  : "border-gray-300 text-gray-700 placeholder:text-gray-400",
+              )}
+              disabled={isSaving}
+              maxLength={102}
+              rows={3}
+              placeholder="Tuliskan ucapan terbaik Anda"
+            />
+          </div>
+
+          <div>
+            <label
+              className={clsx(
+                "block text-sm font-medium",
+                isDark ? "text-neutral-200" : "text-gray-700",
+              )}
+            >
+              Konfirmasi Kehadiran
+            </label>
+            <select
+              value={attendance}
+              onChange={(event) => setAttendance(event.target.value)}
+              className={clsx(
+                "mt-2 w-full rounded-lg border px-4 py-2.5 focus:border-amber-400 focus:outline-none",
+                isDark
+                  ? "border-neutral-700 bg-neutral-900 text-neutral-100"
+                  : "border-gray-300 text-gray-700",
+              )}
+              disabled={isSaving}
+            >
+              <option value="" disabled>
+                Pilih konfirmasi kehadiran
+              </option>
+              <option value="Hadir">Hadir</option>
+              <option value="Tidak hadir">Tidak hadir</option>
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            className={clsx(
+              "w-full rounded-lg px-5 py-2.5 text-sm font-medium",
+              isDark
+                ? "bg-amber-400 text-neutral-900 hover:bg-amber-300"
+                : "bg-amber-500 text-white hover:bg-amber-600",
+            )}
+            disabled={isSaving}
+          >
+            {isSaving ? "Menyimpan..." : "Kirim"}
+          </button>
+
+          {createMutation.isError ? (
+            <p className={clsx("text-xs", isDark ? "text-rose-300" : "text-rose-600")}>
+              {(createMutation.error as Error)?.message || "Gagal mengirim ucapan."}
+            </p>
+          ) : null}
+        </form>
       </div>
     </div>
   );
