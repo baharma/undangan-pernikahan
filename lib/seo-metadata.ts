@@ -1,4 +1,5 @@
 const DEFAULT_SITE_URL = "https://pawiwahan-dedi-listya.my.id";
+const OG_IMAGE_PATH = "/og-whatsapp.jpg";
 
 const withLeadingSlash = (value: string) => (value.startsWith("/") ? value : `/${value}`);
 
@@ -19,4 +20,5 @@ const normalizeSiteUrl = (value?: string) => {
 
 export const SITE_URL = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL);
 export const METADATA_BASE = new URL(SITE_URL);
+export const OG_IMAGE_URL = `${SITE_URL}${OG_IMAGE_PATH}`;
 export const toAbsoluteUrl = (path: string) => `${SITE_URL}${withLeadingSlash(path)}`;
