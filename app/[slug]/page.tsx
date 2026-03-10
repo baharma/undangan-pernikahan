@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import ComponentContentHome from "@/components/Content/Home";
-import { OG_IMAGE_URL, SITE_URL, toAbsoluteUrl } from "@/lib/seo-metadata";
+import { SITE_URL, toAbsoluteUrl } from "@/lib/seo-metadata";
 
 type PageProps = {
   params: Promise<{ slug: string }> | { slug: string };
@@ -51,21 +51,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: canonicalUrl,
       title,
       description,
-      images: [
-        {
-          url: OG_IMAGE_URL,
-          width: 1200,
-          height: 800,
-          type: "image/jpeg",
-          alt: "Undangan Pawiwahan Dedi & Listia",
-        },
-      ],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [OG_IMAGE_URL],
     },
   };
 }

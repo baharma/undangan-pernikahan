@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Pacifico } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
-import { METADATA_BASE, OG_IMAGE_URL, SITE_URL } from "@/lib/seo-metadata";
+import { METADATA_BASE, SITE_URL } from "@/lib/seo-metadata";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,21 +34,11 @@ export const metadata: Metadata = {
     title: "Pawiwahan Dedi & Listia",
     description: "Pawiwahan Dedi & Listia",
     siteName: "Pawiwahan Dedi & Listia",
-    images: [
-      {
-        url: OG_IMAGE_URL,
-        width: 1200,
-        height: 800,
-        type: "image/jpeg",
-        alt: "Undangan Pawiwahan Dedi & Listia",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Pawiwahan Dedi & Listia",
     description: "Pawiwahan Dedi & Listia",
-    images: [OG_IMAGE_URL],
   },
 };
 
